@@ -84,7 +84,7 @@ const ScoreGauge = ({ score }: { score: number }) => {
   };
 
   return (
-    <div className="relative flex items-center justify-center mb-6 mt-2 animate-in zoom-in duration-700">
+    <div className="relative flex items-center justify-center mb-2 mt-2 animate-in zoom-in duration-700">
       {/* Background Glow */}
       <div className={`absolute inset-0 bg-purple-500/10 blur-3xl rounded-full scale-150 opacity-50`} />
       
@@ -237,7 +237,7 @@ export default function MiniApp() {
       <main className="relative max-w-md mx-auto p-6 flex flex-col min-h-screen pb-20">
         
         {/* Header */}
-        <header className="flex items-center justify-between mb-6 animate-in slide-in-from-top-4 duration-500">
+        <header className="flex items-center justify-between mb-4 animate-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 bg-gradient-to-tr from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/20 border border-white/10">
               <Trophy size={20} className="text-white" />
@@ -278,7 +278,7 @@ export default function MiniApp() {
                       <span className="text-sm font-semibold uppercase tracking-wider">What is Neynar Score?</span>
                    </div>
                    <p className="text-sm text-gray-400 leading-relaxed text-left">
-                     It's a reputation metric (0 to 1) that measures account quality to filter out spam and bots. It reflects your authentic contribution to the network.
+                     Neynar User Score is a reputation rating for Farcaster accounts, ranging from 0 to 1. It measures the quality and value of a user’s activity on the network, with higher scores indicating more trusted and positive contributions.
                    </p>
                 </div>
               </div>
@@ -301,10 +301,10 @@ export default function MiniApp() {
             </div>
           ) : (
             // --- Result State (Compact) ---
-            <div className="flex flex-col items-center w-full">
+            <div className="flex flex-col items-center w-full justify-between h-full py-4">
               <ScoreGauge score={score} />
 
-              <div className="w-full space-y-3 mt-4 animate-in slide-in-from-bottom-8 duration-500 delay-100">
+              <div className="w-full space-y-3 mt-auto animate-in slide-in-from-bottom-8 duration-500 delay-100">
                 <Button onClick={handleShare} icon={Share} variant="primary">
                   Share Score
                 </Button>
