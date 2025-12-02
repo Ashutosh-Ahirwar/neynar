@@ -8,6 +8,17 @@ const nextConfig = {
       },
     ],
   },
+  // ✅ ADD THIS to fix potential CORS issues with Farcaster
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

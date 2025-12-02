@@ -1,42 +1,69 @@
-import { Metadata } from 'next';
-import MiniApp from '@/components/MiniApp';
+import { Metadata, ResolvingMetadata } from 'next';
+import MiniApp from '@/components/MiniApp'; // Import the client component
 
-const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
+const APP_URL = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
 
-// Static Metadata for the main homepage
-const frame = {
-  version: "1",
-  imageUrl: `${appUrl}/hero.png`,
-  button: {
-    title: "Check My Score",
-    action: {
-      type: "launch_frame",
-      name: "Check Neynar Score",
-      url: appUrl,
-      splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#ffffff"
-    }
-  }
-};
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
 
-const stringifiedFrame = JSON.stringify(frame);
+// 1. GENERATE METADATA (Server-Side)
+export async function generateMetadata(
+  { searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const query = await searchParams;
+  
+  // Check if we have a score in the URL (e.g. /?score=95&user=alice)
+  const score = query.score as string;
+  const username = (query.username || query.user) as string;
+  const hasScore = !!score;
 
-export const metadata: Metadata = {
-  title: "Check Neynar Score",
-  description: "Check your Farcaster Reputation Score",
-  openGraph: {
-    title: "Check Neynar Score",
-    description: "Check your Farcaster Reputation Score",
-    images: [`${appUrl}/hero.png`],
-  },
-  other: {
-    "fc:frame": stringifiedFrame,
-    "fc:miniapp": stringifiedFrame,
-  },
-};
+  // Dynamic Image URL
+  const imageUrl = hasScore 
+    ? `${APP_URL}/api/og?score=${score}&user=${username}`
+    : `${APP_URL}/api/og`; // Default/Hero image
 
-export default function Home() {
-  return (
-    <MiniApp />
-  );
+  // Dynamic Text
+  const title = hasScore 
+    ? `Neynar Score: ${Number(score).toFixed(2)}`
+    : "Check Your Neynar Score";
+
+  const buttonTitle = hasScore 
+    ? "Check My Score" 
+    : "Get Your Score";
+
+  // Define the Embed (Frame/MiniApp)
+  const frameMetadata = JSON.stringify({
+    version: "1",
+    imageUrl: imageUrl,
+    button: {
+      title: buttonTitle,
+      action: {
+        type: "launch_frame",
+        name: "Neynar Score",
+        url: APP_URL,
+        splashImageUrl: `${APP_URL}/splash.png`,
+        splashBackgroundColor: "#000000",
+      },
+    },
+  });
+
+  return {
+    title: title,
+    openGraph: {
+      title: title,
+      description: "Check your Farcaster reputation score on Neynar.",
+      images: [imageUrl],
+    },
+    other: {
+      "fc:frame": frameMetadata,
+      "fc:miniapp": frameMetadata,
+    },
+  };
+}
+
+// 2. RENDER CLIENT COMPONENT
+export default function Page() {
+  return <MiniApp />;
 }
