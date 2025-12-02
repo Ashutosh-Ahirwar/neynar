@@ -22,11 +22,14 @@ export async function GET(request: Request) {
       glow = 'rgba(168, 85, 247, 0.4)';
     }
 
-    // Fetch the Inter font from Google Fonts
-    // This is crucial because the default environment might not have fonts
+    // Fetch the Inter font from a reliable CDN
+    // The previous Google Fonts URL likely expired or was invalid
     const fontData = await fetch(
-      new URL('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff')
-    ).then((res) => res.arrayBuffer());
+      new URL('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/files/inter-latin-400-normal.woff')
+    ).then((res) => {
+      if (!res.ok) throw new Error('Failed to load font');
+      return res.arrayBuffer();
+    });
 
     return new ImageResponse(
       (
@@ -39,8 +42,8 @@ export async function GET(request: Request) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#050505',
-            // Simple linear gradient background
-            backgroundImage: 'linear-gradient(to bottom, #1a1a2e, #000000)',
+            // Use background property for better compatibility
+            background: 'linear-gradient(to bottom, #1a1a2e, #000000)',
             position: 'relative',
           }}
         >
