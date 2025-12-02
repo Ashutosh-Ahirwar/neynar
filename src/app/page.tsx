@@ -27,7 +27,7 @@ export async function generateMetadata(
     : 'Check Neynar Score';
 
   // 3. Construct the Embed JSON
-  const frame = {
+  const embed = {
     version: "1",
     imageUrl: imageUrl, 
     button: {
@@ -42,6 +42,8 @@ export async function generateMetadata(
     }
   };
 
+  const stringifiedEmbed = JSON.stringify(embed);
+
   return {
     title: title,
     openGraph: {
@@ -50,8 +52,10 @@ export async function generateMetadata(
       images: [imageUrl],
     },
     other: {
-      // The essential tag for Farcaster Mini Apps
-      "fc:frame": JSON.stringify(frame)
+      // The essential tags for Farcaster Mini Apps
+      // We define both for maximum compatibility
+      "fc:frame": stringifiedEmbed,
+      "fc:miniapp": stringifiedEmbed,
     },
   };
 }
