@@ -10,14 +10,15 @@ type SharePageParams = {
 };
 
 type Props = {
-  params: SharePageParams;
+  params: Promise<SharePageParams>; // Updated for Next.js 15
 };
 
 export async function generateMetadata(
   { params }: Props,
   _parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const { score, username } = params;
+  // ✅ FIX: Await params before accessing properties
+  const { score, username } = await params;
 
   const appUrl =
     process.env.NEXT_PUBLIC_URL || 'https://neynar-lyart.vercel.app';
