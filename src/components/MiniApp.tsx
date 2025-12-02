@@ -3,10 +3,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { 
-  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info, ChevronRight, ShieldCheck, UserCheck, MessageCircle, Sparkles
+  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info, ChevronRight, ShieldCheck, UserCheck, MessageCircle, Sparkles, AlertCircle
 } from 'lucide-react';
 
-// --- Types ---
 interface UserContext {
   fid: number;
   displayName?: string;
@@ -14,7 +13,6 @@ interface UserContext {
   pfpUrl?: string;
 }
 
-// --- Sub-Components ---
 const Button = ({ 
   children, 
   onClick, 
@@ -77,41 +75,29 @@ const ScoreGauge = ({ score }: { score: number }) => {
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score) * circumference;
   
+  const isHighQuality = score >= 0.9;
+  
   const getColor = (s: number) => {
-    if (s >= 0.9) return "text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]";
+    if (s >= 0.9) return "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.6)]";
     if (s >= 0.7) return "text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]";
     return "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]";
   };
 
   return (
     <div className="relative flex items-center justify-center mb-4 mt-2 animate-in zoom-in duration-700">
-      {/* Background Glow */}
-      <div className={`absolute inset-0 bg-purple-500/10 blur-3xl rounded-full scale-150 opacity-50`} />
+      <div className={`absolute inset-0 ${isHighQuality ? 'bg-emerald-500/20' : 'bg-purple-500/10'} blur-3xl rounded-full scale-150 opacity-50 transition-colors duration-1000`} />
+      
+      {isHighQuality && (
+        <div className="absolute inset-0 animate-spin-slow">
+           {[...Array(6)].map((_, i) => (
+             <div key={i} className="absolute top-0 left-1/2 w-1 h-1 bg-emerald-400 rounded-full" style={{ transform: `rotate(${i * 60}deg) translateY(-100px)` }} />
+           ))}
+        </div>
+      )}
       
       <svg className="transform -rotate-90 w-56 h-56 relative z-10">
-        {/* Track */}
-        <circle 
-          className="text-white/5" 
-          strokeWidth="16" 
-          stroke="currentColor" 
-          fill="transparent" 
-          r={radius} 
-          cx="112" 
-          cy="112" 
-        />
-        {/* Progress */}
-        <circle 
-          className={`${getColor(score)} transition-all duration-[1.5s] ease-out`} 
-          strokeWidth="16" 
-          strokeDasharray={circumference} 
-          strokeDashoffset={offset} 
-          strokeLinecap="round" 
-          stroke="currentColor" 
-          fill="transparent" 
-          r={radius} 
-          cx="112" 
-          cy="112" 
-        />
+        <circle className="text-white/5" strokeWidth="16" stroke="currentColor" fill="transparent" r={radius} cx="112" cy="112" />
+        <circle className={`${getColor(score)} transition-all duration-[1.5s] ease-out`} strokeWidth="16" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="112" cy="112" />
       </svg>
       <div className="absolute flex flex-col items-center z-20">
         <span className="text-5xl font-black text-white tracking-tighter tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">
@@ -125,13 +111,13 @@ const ScoreGauge = ({ score }: { score: number }) => {
   );
 };
 
-// --- Main Component ---
 export default function MiniApp() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [user, setUser] = useState<UserContext | null>(null);
   
   const [score, setScore] = useState<number | null>(null);
   const [isLoadingScore, setIsLoadingScore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const [isAdded, setIsAdded] = useState(false);
   const [donationStatus, setDonationStatus] = useState<'idle' | 'pending' | 'success'>('idle');
@@ -148,11 +134,23 @@ export default function MiniApp() {
 
   const handleShare = useCallback(async () => {
     if (!user || score === null) return;
-    const text = `My Neynar Score is ${score.toFixed(2)}! 🏆\n\nCheck yours in the Neynar Score Mini App.`;
-    const embedUrl = "https://neynar-score-miniapp.vercel.app"; 
+    
+    // Dynamic share text based on score
+    let shareText = `My Neynar Score is ${score.toFixed(2)}!`;
+    if (score >= 0.9) shareText = `I'm a top-tier user! My Neynar Score is ${score.toFixed(2)} 💎`;
+    else if (score >= 0.7) shareText = `Checking my rep. Neynar Score: ${score.toFixed(2)} 🚀`;
+    
+    const text = `${shareText}\n\nCheck yours in the Neynar Score Mini App.`;
+    
+    // Construct Dynamic Share URL
+    const appUrl = "https://neynar-lyart.vercel.app";
+    const shareUrl = `${appUrl}/?score=${score}&user=${user.username}`;
     
     try {
-      await sdk.actions.composeCast({ text: text, embeds: [embedUrl] });
+      await sdk.actions.composeCast({ 
+        text: text, 
+        embeds: [shareUrl] 
+      });
     } catch (e) {
       console.error("Failed to share:", e);
     }
@@ -163,7 +161,7 @@ export default function MiniApp() {
       setDonationStatus('pending');
       await sdk.actions.sendToken({
         token: "eip155:8453/native", 
-        amount: "500000000000000", // 0.0005 ETH in Wei
+        amount: "500000000000000", 
         recipientAddress: "0xa6DEe9FdE9E1203ad02228f00bF10235d9Ca3752"
       });
       setDonationStatus('success');
@@ -177,22 +175,28 @@ export default function MiniApp() {
   const handleCheckScore = async () => {
     if (!user) return;
     setIsLoadingScore(true);
+    setError(null);
     try {
-      const response = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${user.fid}`, {
-        headers: {
-          accept: 'application/json',
-          api_key: process.env.NEXT_PUBLIC_NEYNAR_API_KEY || 'NEYNAR_API_DOCS'
-        }
-      });
+      // Use our new secure backend route
+      const response = await fetch(`/api/neynar/score?fid=${user.fid}`);
+      
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to fetch score");
+      }
+      
       const data = await response.json();
       
-      if (data.users && data.users[0]) {
-        const userScore = data.users[0].score || 0;
-        setScore(userScore);
+      // Update score and potentially update PFP/Username if they changed
+      setScore(data.score);
+      if (data.username && data.username !== user.username) {
+        setUser(prev => prev ? { ...prev, username: data.username, pfpUrl: data.pfpUrl || prev.pfpUrl } : prev);
       }
-    } catch (apiError) {
+
+    } catch (apiError: any) {
       console.error("Failed to fetch Neynar score:", apiError);
-      setScore(0);
+      setError(apiError.message || "Couldn't fetch score.");
+      setScore(null);
     } finally {
       setIsLoadingScore(false);
     }
@@ -201,10 +205,8 @@ export default function MiniApp() {
   useEffect(() => {
     const init = async () => {
       sdk.actions.ready();
-      
       try {
         const context = await sdk.context;
-        
         if (context && context.user) {
           setUser({
             fid: context.user.fid,
@@ -212,7 +214,6 @@ export default function MiniApp() {
             displayName: context.user.displayName,
             pfpUrl: context.user.pfpUrl
           });
-          
           if (context.client && context.client.added) {
             setIsAdded(true);
           }
@@ -283,27 +284,31 @@ export default function MiniApp() {
                 </div>
               </div>
 
-              <div className="mb-8">
-                {/* Search icon moved inside the button via icon prop */}
-              </div>
-              <Button 
-                onClick={handleCheckScore} 
-                disabled={isLoadingScore}
-                className="max-w-[220px]"
-                variant="primary"
-                icon={isLoadingScore ? undefined : Search}
-              >
-                {isLoadingScore ? (
-                  <><Loader2 className="animate-spin" size={18} /> Calculating...</>
-                ) : (
-                  'Check My Score'
+              <div className="mb-4 w-full max-w-[220px]">
+                {error && (
+                  <div className="flex items-center gap-2 text-red-400 text-xs bg-red-900/10 p-2 rounded-lg mb-3 justify-center">
+                    <AlertCircle size={14} />
+                    <span>{error}</span>
+                  </div>
                 )}
-              </Button>
+                
+                <Button 
+                  onClick={handleCheckScore} 
+                  disabled={isLoadingScore}
+                  variant="primary"
+                  icon={isLoadingScore ? undefined : Search}
+                >
+                  {isLoadingScore ? (
+                    <><Loader2 className="animate-spin" size={18} /> Calculating...</>
+                  ) : (
+                    'Check My Score'
+                  )}
+                </Button>
+              </div>
             </div>
           ) : (
             // --- Result State (Optimized Layout) ---
             <div className="flex flex-col items-center w-full h-full">
-              {/* Reduced margins on gauge to fit content better */}
               <div className="flex-shrink-0">
                 <ScoreGauge score={score} />
               </div>
@@ -330,7 +335,6 @@ export default function MiniApp() {
         </div>
       </main>
 
-      {/* Sticky Bottom Left Donate Button */}
       <div className="fixed bottom-6 left-6 z-40 animate-in slide-in-from-bottom-10 duration-700 delay-500">
          <button 
            onClick={handleDonate}
@@ -346,7 +350,6 @@ export default function MiniApp() {
          </button>
       </div>
 
-      {/* Info Modal */}
       <Modal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
         <div className="space-y-5">
           <div className="text-center pt-2">
@@ -374,7 +377,7 @@ export default function MiniApp() {
                 <div>
                   <h4 className="text-white font-semibold text-xs uppercase tracking-wide mb-1">Profile Hygiene</h4>
                   <p className="text-xs leading-relaxed opacity-80">
-                    Clean username (no random numbers), high-quality PFP, clear bio. Aim for a healthy following ratio.
+                    Clean username, high-quality PFP, clear bio. Aim for a healthy following ratio.
                   </p>
                 </div>
               </div>
@@ -386,7 +389,7 @@ export default function MiniApp() {
                 <div>
                   <h4 className="text-white font-semibold text-xs uppercase tracking-wide mb-1">Communication</h4>
                   <p className="text-xs leading-relaxed opacity-80">
-                    Talk like a real person. Ask open questions. Engage with context. Don't just broadcast links or mini-apps.
+                    Talk like a real person. Ask open questions. Engage with context.
                   </p>
                 </div>
               </div>

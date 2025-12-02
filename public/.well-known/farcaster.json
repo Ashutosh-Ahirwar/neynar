@@ -1,17 +1,40 @@
 {
-  "accountAssociation": {
-    "header": "eyJmaWQiOjM2MjEsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgyY2Q4NWEwOTMyNjFmNTkyNzA4MDRBNkVBNjk3Q2VBNENlQkVjYWZFIn0",
-    "payload": "eyJkb21haW4iOiJ5b2luay5wYXJ0eSJ9",
-    "signature": "MHgwZmJiYWIwODg3YTU2MDFiNDU3MzVkOTQ5MDRjM2Y1NGUxMzVhZTQxOGEzMWQ5ODNhODAzZmZlYWNlZWMyZDYzNWY4ZTFjYWU4M2NhNTAwOTMzM2FmMTc1NDlmMDY2YTVlOWUwNTljNmZiNDUxMzg0Njk1NzBhODNiNjcyZWJjZTFi"
-  },
-  "miniapp": {
+  "frame": {
+    "name": "Check Neynar Score",
     "version": "1",
-    "name": "Neynar Score",
-    "iconUrl": "https://neynar-score-miniapp.vercel.app/icon.png",
-    "homeUrl": "https://neynar-score-miniapp.vercel.app",
-    "description": "Check your simulated Neynar Quality Score.",
-    "buttonTitle": "Check Score",
-    "splashImageUrl": "https://neynar-score-miniapp.vercel.app/splash.png",
-    "splashBackgroundColor": "#000000"
+    "iconUrl": "https://neynar-lyart.vercel.app/icon.png",
+    "homeUrl": "https://neynar-lyart.vercel.app/",
+    "imageUrl": "https://neynar-lyart.vercel.app/hero.png",
+    "buttonTitle": "Check My Score",
+    "splashImageUrl": "https://neynar-lyart.vercel.app/splash.png",
+    "splashBackgroundColor": "#ffffff",
+    "webhookUrl": "https://neynar-lyart.vercel.app/api/webhook",
+    "subtitle": "Farcaster Reputation Rating",
+    "description": "Neynar User Score is a reputation rating for Farcaster accounts, ranging from 0 to 1. It measures the quality and value of a user’s activity on the network.",
+    "screenshotUrls": [
+      "https://neynar-lyart.vercel.app/screenshot1.png"
+    ],
+    "primaryCategory": "productivity",
+    "tags": [
+      "neynar",
+      "score",
+      "reputation",
+      "analytics",
+      "farcaster"
+    ],
+    "heroImageUrl": "https://neynar-lyart.vercel.app/hero.png",
+    "tagline": "Check your network Reputation",
+    "ogTitle": "Check Neynar Score",
+    "ogDescription": "Discover your Neynar User Score and see how you rank.",
+    "ogImageUrl": "https://neynar-lyart.vercel.app/hero.png",
+    "noindex": false
+  },
+  "baseBuilder": {
+    "ownerAddress": "0xd505989c1d95dEfcaE778475D494F5f51776Fe46"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEzNzEyODgsInR5cGUiOiJhdXRoIiwia2V5IjoiMHg4NGM0N0JDNDBhNDY4MGI5QjFjM2I2YUY3ZkZjYjg4ODhkYzBEMzU3In0",
+    "payload": "eyJkb21haW4iOiJuZXluYXItbHlhcnQudmVyY2VsLmFwcCJ9",
+    "signature": "qdedKwM5HvVzu9BmQgXPub4+vzgNOv5W92gH1kDGoTlwv7LLwDDUphas+8EgbhIKfiqKaNtgh0yt5VFfe99LPxs="
   }
 }
