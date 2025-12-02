@@ -1,31 +1,37 @@
 import { ImageResponse } from 'next/og';
 
-// 1. REMOVE 'edge' runtime to use the standard Node.js runtime.
-// This is more stable and prevents "silent" crashes.
+// We use Node.js runtime for better stability with file fetching
 // export const runtime = 'edge'; 
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Get Params
+    // 1. Get Params
     const scoreParam = searchParams.get('score');
     const username = searchParams.get('user') || 'User';
-    // Default to 0.00 if score is missing or invalid
     const score = parseFloat(scoreParam || '0').toFixed(2);
     
-    // 2. LOAD FONT MANUALLY
-    // We fetch a standard font (Inter Bold) from a CDN. 
-    // This is required in Node.js runtime because system fonts aren't available.
-    const fontData = await fetch(
-      new URL('https://github.com/google/fonts/raw/main/ofl/inter/Inter-Bold.ttf', import.meta.url)
-    ).then((res) => res.arrayBuffer());
+    // 2. Load Font with Fallback
+    // Using jsDelivr is much more reliable than raw GitHub links
+    const fontUrl = 'https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/files/inter-latin-700-normal.woff';
+    
+    let fontData: ArrayBuffer | null = null;
+    try {
+      const res = await fetch(fontUrl);
+      if (res.ok) {
+        fontData = await res.arrayBuffer();
+      } else {
+        console.warn(`Failed to fetch font: ${res.status} ${res.statusText}`);
+      }
+    } catch (e) {
+      console.warn("Font fetch failed, falling back to system font", e);
+    }
 
     // Determine Color Logic
     let color = '#fbbf24'; // amber
     let glow = '#fbbf24';
     const scoreNum = parseFloat(score);
-    
     if (scoreNum >= 0.9) {
       color = '#34d399'; // emerald
       glow = '#34d399';
@@ -33,6 +39,16 @@ export async function GET(request: Request) {
       color = '#a855f7'; // purple
       glow = '#a855f7';
     }
+
+    // Prepare fonts array only if fetch succeeded
+    const fonts = fontData ? [
+      {
+        name: 'Inter',
+        data: fontData,
+        style: 'normal' as const,
+        weight: 700 as const,
+      },
+    ] : undefined;
 
     return new ImageResponse(
       (
@@ -44,12 +60,11 @@ export async function GET(request: Request) {
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            backgroundColor: '#050505', 
-            // 3. SIMPLIFIED CSS
-            // Complex gradients can sometimes cause issues. 
-            // We use a simple radial gradient here.
+            backgroundColor: '#050505',
+            // Simple radial gradient is safe
             backgroundImage: 'radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%)',
-            fontFamily: '"Inter"', // Must match the font name loaded below
+            // Fallback to sans-serif if Inter fails
+            fontFamily: fontData ? '"Inter"' : 'sans-serif',
           }}
         >
           {/* Content Layer */}
@@ -83,7 +98,7 @@ export async function GET(request: Request) {
                 height: 300,
                 borderRadius: '150px',
                 border: `12px solid ${color}`,
-                boxShadow: `0 0 50px ${glow}`, // Simplified shadow for performance
+                boxShadow: `0 0 50px ${glow}`,
                 backgroundColor: 'rgba(0,0,0,0.3)', 
                 marginBottom: 30,
               }}
@@ -115,15 +130,7 @@ export async function GET(request: Request) {
       {
         width: 1200,
         height: 800,
-        // 4. INJECT FONT
-        fonts: [
-          {
-            name: 'Inter',
-            data: fontData,
-            style: 'normal',
-            weight: 700,
-          },
-        ],
+        fonts: fonts, // Pass the fonts array (or undefined)
         headers: {
           'Cache-Control': 'public, max-age=3600, immutable',
         },
@@ -131,6 +138,10 @@ export async function GET(request: Request) {
     );
   } catch (e: any) {
     console.error("OG Generation Error:", e);
-    return new Response(`Failed to generate image: ${e.message}`, { status: 500 });
+    // Return a JSON error instead of crashing, easier to debug in browser
+    return new Response(JSON.stringify({ error: `Failed to generate image: ${e.message}` }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
