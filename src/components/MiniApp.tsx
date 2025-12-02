@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { 
-  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info
+  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info, ChevronRight
 } from 'lucide-react';
 
 // --- Types ---
@@ -25,17 +25,18 @@ const Button = ({
 }: {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'glass';
   className?: string;
   disabled?: boolean;
   icon?: React.ElementType;
 }) => {
-  const baseStyles = "w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 touch-manipulation";
+  const baseStyles = "w-full py-3.5 px-6 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 touch-manipulation shadow-sm";
   const variants = {
-    primary: "bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-900/20",
-    secondary: "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm",
-    outline: "border-2 border-purple-500/30 text-purple-300 hover:bg-purple-500/10",
-    ghost: "bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
+    primary: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 shadow-purple-500/25 border border-white/10",
+    secondary: "bg-white/5 text-white hover:bg-white/10 backdrop-blur-md border border-white/5",
+    outline: "border border-white/20 text-gray-300 hover:bg-white/5 hover:text-white hover:border-white/40",
+    ghost: "bg-transparent text-gray-400 hover:text-white hover:bg-white/5 shadow-none",
+    glass: "bg-black/40 backdrop-blur-xl border border-white/10 text-white hover:bg-white/10"
   };
 
   return (
@@ -44,7 +45,7 @@ const Button = ({
       disabled={disabled}
       className={`${baseStyles} ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
     >
-      {Icon && <Icon size={20} />}
+      {Icon && <Icon size={18} />}
       {children}
     </button>
   );
@@ -54,11 +55,14 @@ const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm bg-[#1c1c1e] rounded-2xl border border-white/10 shadow-2xl p-6 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-sm bg-[#151516] rounded-3xl border border-white/10 shadow-2xl p-6 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto"
+      >
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-1"
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
         >
           <X size={20} />
         </button>
@@ -69,26 +73,53 @@ const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => 
 };
 
 const ScoreGauge = ({ score }: { score: number }) => {
-  const radius = 70;
+  const radius = 80;
   const circumference = 2 * Math.PI * radius;
-  // Score is 0-1
   const offset = circumference - (score) * circumference;
   
   const getColor = (s: number) => {
-    if (s >= 0.9) return "text-green-500";
-    if (s >= 0.7) return "text-purple-500";
-    return "text-yellow-500";
+    if (s >= 0.9) return "text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]";
+    if (s >= 0.7) return "text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]";
+    return "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]";
   };
 
   return (
-    <div className="relative flex items-center justify-center mb-6 animate-in zoom-in duration-500">
-      <svg className="transform -rotate-90 w-48 h-48">
-        <circle className="text-white/5" strokeWidth="12" stroke="currentColor" fill="transparent" r={radius} cx="96" cy="96" />
-        <circle className={`${getColor(score)} transition-all duration-1000 ease-out`} strokeWidth="12" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="96" cy="96" />
+    <div className="relative flex items-center justify-center mb-10 mt-4 animate-in zoom-in duration-700">
+      {/* Background Glow */}
+      <div className={`absolute inset-0 bg-purple-500/10 blur-3xl rounded-full scale-150 opacity-50`} />
+      
+      <svg className="transform -rotate-90 w-56 h-56 relative z-10">
+        {/* Track */}
+        <circle 
+          className="text-white/5" 
+          strokeWidth="16" 
+          stroke="currentColor" 
+          fill="transparent" 
+          r={radius} 
+          cx="112" 
+          cy="112" 
+        />
+        {/* Progress */}
+        <circle 
+          className={`${getColor(score)} transition-all duration-[1.5s] ease-out`} 
+          strokeWidth="16" 
+          strokeDasharray={circumference} 
+          strokeDashoffset={offset} 
+          strokeLinecap="round" 
+          stroke="currentColor" 
+          fill="transparent" 
+          r={radius} 
+          cx="112" 
+          cy="112" 
+        />
       </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className="text-4xl font-bold text-white tracking-tighter">{score.toFixed(4)}</span>
-        <span className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Neynar Score</span>
+      <div className="absolute flex flex-col items-center z-20">
+        <span className="text-5xl font-black text-white tracking-tighter tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">
+          {score.toFixed(2)}
+        </span>
+        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mt-2">
+          Neynar Score
+        </span>
       </div>
     </div>
   );
@@ -117,7 +148,7 @@ export default function MiniApp() {
 
   const handleShare = useCallback(async () => {
     if (!user || score === null) return;
-    const text = `My Neynar Score is ${score.toFixed(4)}! 🏆\n\nCheck yours in the Neynar Score Mini App.`;
+    const text = `My Neynar Score is ${score.toFixed(2)}! 🏆\n\nCheck yours in the Neynar Score Mini App.`;
     const embedUrl = "https://neynar-score-miniapp.vercel.app"; 
     
     try {
@@ -200,44 +231,60 @@ export default function MiniApp() {
   }
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white font-sans">
-      <div className="fixed inset-0 bg-gradient-to-b from-purple-900/20 via-black to-black pointer-events-none" />
-      <main className="relative max-w-md mx-auto p-6 flex flex-col min-h-screen">
+    <div className="min-h-screen bg-[#000000] text-white font-sans selection:bg-purple-500/30">
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
+      
+      <main className="relative max-w-md mx-auto p-6 flex flex-col min-h-screen pb-24">
         
-        <header className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-tr from-orange-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+        {/* Header */}
+        <header className="flex items-center justify-between mb-8 animate-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 bg-gradient-to-tr from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/20 border border-white/10">
               <Trophy size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight">Neynar Score</h1>
-              <p className="text-xs text-gray-500 font-medium">Mini App</p>
+              <h1 className="text-xl font-bold leading-none tracking-tight">Neynar Score</h1>
             </div>
           </div>
           <div className="flex gap-2">
-            {!isAdded && <button onClick={handleAddApp} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><Bookmark size={20} /></button>}
-            {user?.pfpUrl && <img src={user.pfpUrl} alt="Profile" className="w-9 h-9 rounded-full border border-white/10" />}
+            {!isAdded && (
+              <button 
+                onClick={handleAddApp} 
+                className="w-10 h-10 bg-white/5 backdrop-blur-md rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors border border-white/5"
+              >
+                <Bookmark size={18} />
+              </button>
+            )}
+            {user?.pfpUrl && (
+              <img 
+                src={user.pfpUrl} 
+                alt="Profile" 
+                className="w-10 h-10 rounded-full border-2 border-white/10 shadow-sm"
+              />
+            )}
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold mb-1">Hello, {user?.displayName || 'User'}</h2>
+        <div className="flex-1 flex flex-col justify-center">
+          
+          <div className="text-center mb-8 animate-in fade-in duration-700 delay-100">
+            <h2 className="text-2xl font-bold mb-2">Hello, {user?.displayName || 'User'}</h2>
             <p className="text-gray-400 text-sm">Check your current Neynar reputation score.</p>
           </div>
 
           {score === null ? (
-            <div className="flex-1 flex flex-col items-center justify-center mb-8">
-              <div className="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
-                <Search className="text-purple-400" size={32} />
+            <div className="flex flex-col items-center justify-center mb-12 animate-in zoom-in duration-500">
+              <div className="w-24 h-24 bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 rounded-full flex items-center justify-center mb-8 border border-white/5 shadow-2xl shadow-purple-900/20">
+                <Search className="text-purple-300" size={36} />
               </div>
               <Button 
                 onClick={handleCheckScore} 
                 disabled={isLoadingScore}
-                className="max-w-[200px]"
+                className="max-w-[220px]"
+                variant="primary"
               >
                 {isLoadingScore ? (
-                  <><Loader2 className="animate-spin" size={20} /> Loading...</>
+                  <><Loader2 className="animate-spin" size={18} /> Calculating...</>
                 ) : (
                   'Check My Score'
                 )}
@@ -248,81 +295,91 @@ export default function MiniApp() {
           )}
 
           {score !== null && (
-            <div className="space-y-3 mt-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <Button onClick={handleShare} icon={Share}>Share Score</Button>
+            <div className="space-y-4 mt-8 animate-in slide-in-from-bottom-8 duration-500 delay-100">
+              <Button onClick={handleShare} icon={Share} variant="primary">
+                Share Score
+              </Button>
               
               <Button 
                 onClick={() => setShowInfoModal(true)} 
-                variant="outline" 
-                icon={Info}
+                variant="glass" 
+                className="justify-between group"
               >
-                How to improve score?
+                <div className="flex items-center gap-2">
+                  <Info size={18} className="text-gray-400 group-hover:text-white transition-colors" />
+                  <span>How to improve score?</span>
+                </div>
+                <ChevronRight size={16} className="text-gray-500 group-hover:text-white transition-colors" />
               </Button>
             </div>
           )}
-
-          {/* Subtle Donate Footer */}
-          <div className="mt-8 pt-4 border-t border-white/5 text-center">
-             <button 
-               onClick={handleDonate}
-               disabled={donationStatus !== 'idle'}
-               className="text-xs text-gray-600 hover:text-purple-400 transition-colors flex items-center justify-center gap-1.5 mx-auto"
-             >
-                {donationStatus === 'success' ? (
-                  <CheckCircle2 size={12} className="text-green-500" />
-                ) : (
-                  <Heart size={12} />
-                )}
-                {donationStatus === 'pending' ? 'Processing...' : 
-                 donationStatus === 'success' ? 'Thank You!' : 'Donate 0.0005 ETH (Base)'}
-             </button>
-          </div>
         </div>
       </main>
+
+      {/* Sticky Bottom Left Donate Button */}
+      <div className="fixed bottom-6 left-6 z-40 animate-in slide-in-from-bottom-10 duration-700 delay-500">
+         <button 
+           onClick={handleDonate}
+           disabled={donationStatus !== 'idle'}
+           className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-full py-2 px-3.5 text-xs font-medium text-gray-300 flex items-center gap-2 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all shadow-lg active:scale-95"
+         >
+            {donationStatus === 'success' ? (
+              <CheckCircle2 size={14} className="text-emerald-500" />
+            ) : (
+              <Heart size={14} className="text-pink-500" />
+            )}
+            <span>{donationStatus === 'pending' ? '...' : donationStatus === 'success' ? 'Sent!' : 'Donate'}</span>
+         </button>
+      </div>
 
       {/* Info Modal */}
       <Modal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
         <div className="space-y-6">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-3 text-purple-400">
-              <Trophy size={24} />
+          <div className="text-center pt-2">
+            <div className="w-14 h-14 bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-purple-300 border border-purple-500/20">
+              <Trophy size={28} />
             </div>
-            <h3 className="text-xl font-bold text-white">Neynar User Score</h3>
-            <p className="text-gray-400 text-xs mt-1">A measure of account quality (0.0 - 1.0)</p>
+            <h3 className="text-2xl font-bold text-white">Neynar Score</h3>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="bg-white/10 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider text-gray-300 uppercase">Metric</span>
+              <span className="text-gray-400 text-xs">0.0 to 1.0</span>
+            </div>
           </div>
 
           <div className="space-y-4 text-sm text-gray-300">
-            <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-              <h4 className="text-white font-semibold mb-1 text-xs uppercase tracking-wider">What is it?</h4>
-              <p className="text-xs leading-relaxed">
-                It reflects the confidence in a user being high-quality. It is <strong>not</strong> proof of humanity, but filters out spam and low-quality AI slop. Scores update weekly.
+            <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+              <h4 className="text-white font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-2">
+                <Info size={14} className="text-blue-400" /> What is it?
+              </h4>
+              <p className="text-xs leading-relaxed opacity-80">
+                It reflects the confidence in a user being high-quality. It filters out spam and low-quality AI slop. Scores update weekly.
               </p>
             </div>
 
             <div>
-              <h4 className="text-white font-semibold mb-2 text-xs uppercase tracking-wider">How to Improve?</h4>
+              <h4 className="text-white font-semibold mb-3 text-xs uppercase tracking-wider pl-1">How to Improve?</h4>
               <ul className="space-y-3">
-                <li className="flex gap-3">
-                  <span className="text-purple-400 font-bold">1.</span>
-                  <span><strong>Authentic Content:</strong> Don't just cast "gm" or repost internet photos. Share original thoughts and personal stories.</span>
+                <li className="flex gap-3 items-start">
+                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-300 mt-0.5">1</span>
+                  <span><strong>Authentic Content:</strong> Share original thoughts and personal stories. Avoid generic "gm" posts.</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="text-purple-400 font-bold">2.</span>
-                  <span><strong>No Spam:</strong> Avoid only posting mini-apps or generic AI-generated replies.</span>
+                <li className="flex gap-3 items-start">
+                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-300 mt-0.5">2</span>
+                  <span><strong>No Spam:</strong> Don't just post mini-apps or generic AI replies.</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="text-purple-400 font-bold">3.</span>
-                  <span><strong>Quality Profile:</strong> Use a clear PFP, write a unique bio, and avoid random-number usernames.</span>
+                <li className="flex gap-3 items-start">
+                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-300 mt-0.5">3</span>
+                  <span><strong>Quality Profile:</strong> Clear PFP, unique bio, and a recognizable username.</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="text-purple-400 font-bold">4.</span>
+                <li className="flex gap-3 items-start">
+                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-300 mt-0.5">4</span>
                   <span><strong>Connect:</strong> Engage in real conversations. Don't just broadcast.</span>
                 </li>
               </ul>
             </div>
           </div>
 
-          <Button onClick={() => setShowInfoModal(false)} variant="secondary">
+          <Button onClick={() => setShowInfoModal(false)} variant="secondary" className="w-full">
             Got it
           </Button>
         </div>
