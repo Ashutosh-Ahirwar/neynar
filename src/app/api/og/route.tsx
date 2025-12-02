@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
-// ❌ REMOVE 'edge' runtime to prevent silent crashes and memory limits
-// export const runtime = 'edge'; 
+// ✅ RESTORE 'edge' runtime so default fonts (Inter) are available automatically
+export const runtime = 'edge';
 
 export async function GET(request: Request) {
   try {
@@ -39,6 +39,7 @@ export async function GET(request: Request) {
             flexDirection: 'column',
             background: '#050505', 
             position: 'relative',
+            fontFamily: 'sans-serif', // Fallback font family
           }}
         >
           {/* Decorative Gradient Background Layer */}
@@ -69,7 +70,7 @@ export async function GET(request: Request) {
               fontSize: 60, 
               color: '#e5e7eb', 
               marginBottom: 20, 
-              fontWeight: 700, // ✅ CHANGED from 900 to 700 (safer for default fonts)
+              fontWeight: 700, // ✅ KEEP 700 (900 is often missing in default fonts)
               letterSpacing: '-1px'
             }}>
               @{username}
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
             >
               <div style={{ 
                 fontSize: 100, 
-                fontWeight: 700, // ✅ CHANGED from 900 to 700
+                fontWeight: 700, // ✅ KEEP 700
                 color: '#ffffff' 
               }}>
                 {score}
@@ -122,6 +123,7 @@ export async function GET(request: Request) {
     );
   } catch (e: any) {
     console.error(e);
+    // Return a visible error image or JSON so you can see what went wrong
     return new Response(`Failed to generate image: ${e.message}`, { status: 500 });
   }
 }
