@@ -8,13 +8,11 @@ export async function GET(request: Request) {
     const scoreParam = searchParams.get('score');
     const username = searchParams.get('user') || 'User';
     
-    // Default to 0 if parsing fails
     const score = parseFloat(scoreParam || '0');
     
     // Determine color based on score
-    let color = '#fbbf24'; // amber (default)
+    let color = '#fbbf24'; // amber
     let glow = 'rgba(251, 191, 36, 0.4)';
-    
     if (score >= 0.9) {
       color = '#34d399'; // emerald
       glow = 'rgba(52, 211, 153, 0.4)';
@@ -34,11 +32,12 @@ export async function GET(request: Request) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#050505',
-            fontFamily: 'sans-serif',
+            // Simple font stack ensures rendering
+            fontFamily: '"Inter", sans-serif',
             position: 'relative',
           }}
         >
-          {/* Background Gradient - using simple div for max compatibility */}
+          {/* Background Gradient */}
           <div
             style={{
               position: 'absolute',
@@ -51,10 +50,10 @@ export async function GET(request: Request) {
             }}
           />
 
-          {/* Content Container */}
+          {/* Content */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
-            {/* Username */}
-            <div style={{ fontSize: 48, color: '#e5e7eb', marginBottom: 24, fontWeight: 700 }}>
+            {/* Username - Added text-shadow for better visibility */}
+            <div style={{ fontSize: 48, color: '#e5e7eb', marginBottom: 20, fontWeight: 700, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
               @{username}
             </div>
             
@@ -69,17 +68,16 @@ export async function GET(request: Request) {
                 borderRadius: '50%',
                 border: `12px solid ${color}`,
                 boxShadow: `0 0 80px ${glow}`,
-                backgroundColor: 'rgba(0,0,0,0.4)',
-                marginBottom: 40,
+                backgroundColor: 'rgba(0,0,0,0.6)',
+                marginBottom: 30,
               }}
             >
-              <div style={{ fontSize: 110, fontWeight: 900, color: '#ffffff' }}>
+              <div style={{ fontSize: 100, fontWeight: 900, color: '#ffffff' }}>
                 {score.toFixed(2)}
               </div>
             </div>
 
-            {/* Label */}
-            <div style={{ fontSize: 32, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 6 }}>
+            <div style={{ fontSize: 24, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 4, fontWeight: 600 }}>
               Neynar Score
             </div>
           </div>
@@ -89,13 +87,14 @@ export async function GET(request: Request) {
         width: 1200,
         height: 800,
         headers: {
-          'Cache-Control': 'no-store, no-cache', // Disable caching during debug
-          'Content-Type': 'image/png',
+          'Cache-Control': 'public, max-age=3600, immutable',
         },
       }
     );
   } catch (e: any) {
-    console.error(`OG Image Error: ${e.message}`);
-    return new Response(`Failed to generate image`, { status: 500 });
+    console.error(`OG Error: ${e.message}`);
+    return new Response(`Failed to generate the image: ${e.message}`, {
+      status: 500,
+    });
   }
 }

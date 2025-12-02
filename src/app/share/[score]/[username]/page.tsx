@@ -14,17 +14,18 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { score, username } = await params;
   
-  // Debug log (check Vercel logs)
-  console.log(`Generating metadata for: ${username}, score: ${score}`);
-
+  // Ensure we have a valid URL base
   const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
+  
   const decodedUsername = decodeURIComponent(username);
   
-  // Construct image URL
+  // Construct image URL for the OG image
+  // We use the absolute URL for the image
   const imageUrl = `${appUrl}/api/og?score=${score}&user=${encodeURIComponent(decodedUsername)}`;
 
   const title = `Neynar Score: ${Number(score).toFixed(2)}`;
 
+  // Construct the Frame/MiniApp metadata
   const frame = {
     version: "1",
     imageUrl: imageUrl, 
@@ -33,7 +34,7 @@ export async function generateMetadata(
       action: {
         type: "launch_frame",
         name: "Check Neynar Score",
-        url: appUrl, 
+        url: appUrl, // This is the URL the app will open to (the home page)
         splashImageUrl: `${appUrl}/splash.png`,
         splashBackgroundColor: "#000000"
       }
@@ -47,7 +48,14 @@ export async function generateMetadata(
     openGraph: {
       title: title,
       description: `Check @${decodedUsername}'s Farcaster Reputation Score`,
-      images: [imageUrl],
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 800,
+          alt: `${decodedUsername}'s Neynar Score`,
+        }
+      ],
     },
     other: {
       "fc:frame": stringifiedFrame,
