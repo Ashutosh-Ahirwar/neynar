@@ -1,31 +1,28 @@
 import { ImageResponse } from 'next/og';
 
-// ✅ RESTORE 'edge' runtime so default fonts (Inter) are available automatically
-export const runtime = 'edge';
+// ❌ REMOVED 'edge' runtime. We use default Node.js for better stability.
+// export const runtime = 'edge'; 
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Get params
+    // 1. Get Params
     const scoreParam = searchParams.get('score');
     const username = searchParams.get('user') || 'User';
-    
-    // Parse score, default to 0.00
     const score = parseFloat(scoreParam || '0').toFixed(2);
     
-    // Determine color based on score
+    // 2. Load Font (Critical for Node.js runtime)
+    // We use a public CDN for Inter-Bold to ensure it always renders
+    const fontData = await fetch(
+      new URL('https://github.com/google/fonts/raw/main/ofl/inter/Inter-Bold.ttf', import.meta.url)
+    ).then((res) => res.arrayBuffer());
+
+    // 3. Determine Color Logic
     let color = '#fbbf24'; // amber
-    let glow = '#fbbf24';
     const scoreNum = parseFloat(score);
-    
-    if (scoreNum >= 0.9) {
-      color = '#34d399'; // emerald
-      glow = '#34d399';
-    } else if (scoreNum >= 0.7) {
-      color = '#a855f7'; // purple
-      glow = '#a855f7';
-    }
+    if (scoreNum >= 0.9) color = '#34d399'; // emerald
+    else if (scoreNum >= 0.7) color = '#a855f7'; // purple
 
     return new ImageResponse(
       (
@@ -37,93 +34,79 @@ export async function GET(request: Request) {
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            background: '#050505', 
-            position: 'relative',
-            fontFamily: 'sans-serif', // Fallback font family
+            backgroundColor: '#0f0518', // Same dark bg as Flappy Warplet
+            backgroundImage: 'radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0518 100%)',
+            fontFamily: '"Inter"',
           }}
         >
-          {/* Decorative Gradient Background Layer */}
+          {/* Username */}
+          <div style={{ 
+            display: 'flex',
+            fontSize: 60, 
+            color: '#e5e7eb', 
+            marginBottom: 20, 
+            fontWeight: 700,
+          }}>
+            @{username}
+          </div>
+          
+          {/* Score Ring */}
           <div
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(to bottom, #1a1a2e, #000000)',
-              opacity: 0.8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 300,
+              height: 300,
+              borderRadius: '150px',
+              border: `12px solid ${color}`,
+              backgroundColor: 'rgba(0,0,0,0.3)',
+              boxShadow: `0 0 50px ${color}`, // Simplified shadow
+              marginBottom: 30,
             }}
-          />
+          >
+            <div style={{ 
+              display: 'flex',
+              fontSize: 100, 
+              fontWeight: 700,
+              color: '#ffffff',
+              textShadow: '0 4px 10px rgba(0,0,0,0.5)',
+            }}>
+              {score}
+            </div>
+          </div>
 
-          {/* Content Layer */}
-          <div style={{
+          {/* Label */}
+          <div style={{ 
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10,
-            textShadow: '0 4px 20px rgba(0,0,0,0.8)', 
+            fontSize: 32, 
+            color: '#9ca3af', 
+            textTransform: 'uppercase', 
+            letterSpacing: '4px',
+            fontWeight: 700
           }}>
-            
-            {/* Username */}
-            <div style={{ 
-              fontSize: 60, 
-              color: '#e5e7eb', 
-              marginBottom: 20, 
-              fontWeight: 700, // ✅ KEEP 700 (900 is often missing in default fonts)
-              letterSpacing: '-1px'
-            }}>
-              @{username}
-            </div>
-            
-            {/* Score Ring */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 300,
-                height: 300,
-                borderRadius: '150px',
-                border: `12px solid ${color}`,
-                boxShadow: `0 0 80px ${glow}`,
-                backgroundColor: 'rgba(0,0,0,0.5)', 
-                marginBottom: 30,
-              }}
-            >
-              <div style={{ 
-                fontSize: 100, 
-                fontWeight: 700, // ✅ KEEP 700
-                color: '#ffffff' 
-              }}>
-                {score}
-              </div>
-            </div>
-
-            {/* Label */}
-            <div style={{ 
-              fontSize: 32, 
-              color: '#9ca3af', 
-              textTransform: 'uppercase', 
-              letterSpacing: '6px',
-              fontWeight: 700
-            }}>
-              Neynar Score
-            </div>
+            Neynar Score
           </div>
         </div>
       ),
       {
         width: 1200,
-        height: 800,
+        height: 800, // Standard OG size (matches Flappy Warplet)
+        fonts: [
+          {
+            name: 'Inter',
+            data: fontData,
+            style: 'normal',
+            weight: 700,
+          },
+        ],
         headers: {
           'Cache-Control': 'public, max-age=3600, immutable',
         },
       }
     );
   } catch (e: any) {
-    console.error(e);
-    // Return a visible error image or JSON so you can see what went wrong
+    console.error("OG Error:", e);
     return new Response(`Failed to generate image: ${e.message}`, { status: 500 });
   }
 }
