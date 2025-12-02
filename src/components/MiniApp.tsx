@@ -84,11 +84,13 @@ const ScoreGauge = ({ score }: { score: number }) => {
   };
 
   return (
-    <div className="relative flex items-center justify-center mb-4 mt-2 animate-in zoom-in duration-700">
-      <div className={`absolute inset-0 ${isHighQuality ? 'bg-emerald-500/20' : 'bg-purple-500/10'} blur-3xl rounded-full scale-150 opacity-50 transition-colors duration-1000`} />
+    <div className="relative flex items-center justify-center mb-4 mt-2">
+      {/* Background Glow - Static */}
+      <div className={`absolute inset-0 ${isHighQuality ? 'bg-emerald-500/20' : 'bg-purple-500/10'} blur-3xl rounded-full scale-150 opacity-50`} />
       
+      {/* Decorative Dots - Static (Removed animate-spin-slow) */}
       {isHighQuality && (
-        <div className="absolute inset-0 animate-spin-slow">
+        <div className="absolute inset-0">
            {[...Array(6)].map((_, i) => (
              <div key={i} className="absolute top-0 left-1/2 w-1 h-1 bg-emerald-400 rounded-full" style={{ transform: `rotate(${i * 60}deg) translateY(-100px)` }} />
            ))}
@@ -97,7 +99,18 @@ const ScoreGauge = ({ score }: { score: number }) => {
       
       <svg className="transform -rotate-90 w-56 h-56 relative z-10">
         <circle className="text-white/5" strokeWidth="16" stroke="currentColor" fill="transparent" r={radius} cx="112" cy="112" />
-        <circle className={`${getColor(score)} transition-all duration-[1.5s] ease-out`} strokeWidth="16" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="112" cy="112" />
+        <circle 
+          className={getColor(score)} // Removed transition classes
+          strokeWidth="16" 
+          strokeDasharray={circumference} 
+          strokeDashoffset={offset} 
+          strokeLinecap="round" 
+          stroke="currentColor" 
+          fill="transparent" 
+          r={radius} 
+          cx="112" 
+          cy="112" 
+        />
       </svg>
       <div className="absolute flex flex-col items-center z-20">
         <span className="text-5xl font-black text-white tracking-tighter tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">
