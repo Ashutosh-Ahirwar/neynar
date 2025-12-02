@@ -44,7 +44,7 @@ export async function GET(request: Request) {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(to bottom, #1a1a2e, #000000)',
+              backgroundImage: 'linear-gradient(to bottom, #1a1a2e, #000000)',
               zIndex: 0,
             }}
           />
@@ -83,11 +83,15 @@ export async function GET(request: Request) {
       {
         width: 1200,
         height: 800,
+        // Essential for Farcaster to cache and serve the image correctly
+        headers: {
+          'Cache-Control': 'public, max-age=3600, immutable',
+        },
       }
     );
   } catch (e: any) {
     console.log(`${e.message}`);
-    return new Response(`Failed to generate the image`, {
+    return new Response(`Failed to generate the image: ${e.message}`, {
       status: 500,
     });
   }
