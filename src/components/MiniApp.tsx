@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { 
-  Trophy, Share, Heart, Bookmark, X, Loader2, CheckCircle2
+  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search
 } from 'lucide-react';
 
 // --- Types ---
@@ -13,13 +13,6 @@ interface UserContext {
   username?: string;
   pfpUrl?: string;
 }
-
-// --- Mock Data Helpers ---
-const getMockNeynarScore = (fid: number) => {
-  const hash = fid * 1337;
-  const score = (hash % 35) + 65; 
-  return score + ((hash % 10) / 10);
-};
 
 // --- Sub-Components ---
 const Button = ({ 
@@ -59,23 +52,25 @@ const Button = ({
 const ScoreGauge = ({ score }: { score: number }) => {
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
+  // Score is now 0-1, so we map 0-1 directly to the circle progress
+  const offset = circumference - (score) * circumference;
   
   const getColor = (s: number) => {
-    if (s >= 90) return "text-green-500";
-    if (s >= 80) return "text-purple-500";
+    if (s >= 0.9) return "text-green-500";
+    if (s >= 0.7) return "text-purple-500";
     return "text-yellow-500";
   };
 
   return (
-    <div className="relative flex items-center justify-center mb-8">
+    <div className="relative flex items-center justify-center mb-8 animate-in zoom-in duration-500">
       <svg className="transform -rotate-90 w-48 h-48">
         <circle className="text-white/5" strokeWidth="12" stroke="currentColor" fill="transparent" r={radius} cx="96" cy="96" />
         <circle className={`${getColor(score)} transition-all duration-1000 ease-out`} strokeWidth="12" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="96" cy="96" />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-4xl font-bold text-white tracking-tighter">{score.toFixed(1)}%</span>
-        <span className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Quality Score</span>
+        {/* Display Raw Score */}
+        <span className="text-4xl font-bold text-white tracking-tighter">{score.toFixed(4)}</span>
+        <span className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Neynar Score</span>
       </div>
     </div>
   );
@@ -85,7 +80,10 @@ const ScoreGauge = ({ score }: { score: number }) => {
 export default function MiniApp() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [user, setUser] = useState<UserContext | null>(null);
-  const [score, setScore] = useState<number>(0);
+  
+  const [score, setScore] = useState<number | null>(null); // Null initially
+  const [isLoadingScore, setIsLoadingScore] = useState(false);
+  
   const [isAdded, setIsAdded] = useState(false);
   const [donationStatus, setDonationStatus] = useState<'idle' | 'pending' | 'success'>('idle');
 
@@ -99,8 +97,8 @@ export default function MiniApp() {
   }, []);
 
   const handleShare = useCallback(async () => {
-    if (!user) return;
-    const text = `My Neynar Quality Score is ${score.toFixed(1)}%! 🏆\n\nCheck your score in the Neynar Score Mini App.`;
+    if (!user || score === null) return;
+    const text = `My Neynar Score is ${score.toFixed(4)}! 🏆\n\nCheck yours in the Neynar Score Mini App.`;
     const embedUrl = "https://neynar-score-miniapp.vercel.app"; 
     
     try {
@@ -126,14 +124,37 @@ export default function MiniApp() {
     }
   }, []);
 
+  // New function to handle manual fetch
+  const handleCheckScore = async () => {
+    if (!user) return;
+    setIsLoadingScore(true);
+    try {
+      const response = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${user.fid}`, {
+        headers: {
+          accept: 'application/json',
+          api_key: process.env.NEXT_PUBLIC_NEYNAR_API_KEY || 'NEYNAR_API_DOCS'
+        }
+      });
+      const data = await response.json();
+      
+      if (data.users && data.users[0]) {
+        // Use the raw score directly (usually 0.0 to 1.0)
+        const userScore = data.users[0].score || 0;
+        setScore(userScore);
+      }
+    } catch (apiError) {
+      console.error("Failed to fetch Neynar score:", apiError);
+      setScore(0);
+    } finally {
+      setIsLoadingScore(false);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
-      // 1. Notify Farcaster the app is ready
       sdk.actions.ready();
       
       try {
-        // 2. Await the context. This fixes the TS error because
-        // it resolves the Promise<MiniAppContext> into MiniAppContext.
         const context = await sdk.context;
         
         if (context && context.user) {
@@ -143,7 +164,6 @@ export default function MiniApp() {
             displayName: context.user.displayName,
             pfpUrl: context.user.pfpUrl
           });
-          setScore(getMockNeynarScore(context.user.fid));
           
           if (context.client && context.client.added) {
             setIsAdded(true);
@@ -186,22 +206,45 @@ export default function MiniApp() {
         <div className="flex-1 flex flex-col">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold mb-1">Hello, {user?.displayName || 'User'}</h2>
-            <p className="text-gray-400 text-sm">Your Farcaster reputation score is ready.</p>
+            <p className="text-gray-400 text-sm">Check your current Neynar reputation score.</p>
           </div>
 
-          <ScoreGauge score={score} />
-
-          <div className="space-y-3 mt-auto">
-            <Button onClick={handleShare} icon={Share}>Share Score</Button>
-            <div className="grid grid-cols-2 gap-3">
-              <Button onClick={handleDonate} variant="secondary" icon={donationStatus === 'success' ? CheckCircle2 : Heart}>
-                {donationStatus === 'pending' ? '...' : donationStatus === 'success' ? 'Sent!' : 'Donate'}
-              </Button>
-              <Button onClick={handleAddApp} variant="outline" icon={Bookmark} disabled={isAdded}>
-                {isAdded ? 'Saved' : 'Bookmark'}
+          {/* Conditional Rendering: Show Button if no score, otherwise show Gauge */}
+          {score === null ? (
+            <div className="flex-1 flex flex-col items-center justify-center mb-8">
+              <div className="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
+                <Search className="text-purple-400" size={32} />
+              </div>
+              <Button 
+                onClick={handleCheckScore} 
+                disabled={isLoadingScore}
+                className="max-w-[200px]"
+              >
+                {isLoadingScore ? (
+                  <><Loader2 className="animate-spin" size={20} /> Loading...</>
+                ) : (
+                  'Check My Score'
+                )}
               </Button>
             </div>
-          </div>
+          ) : (
+            <ScoreGauge score={score} />
+          )}
+
+          {/* Actions - Only visible after score is loaded */}
+          {score !== null && (
+            <div className="space-y-3 mt-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <Button onClick={handleShare} icon={Share}>Share Score</Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={handleDonate} variant="secondary" icon={donationStatus === 'success' ? CheckCircle2 : Heart}>
+                  {donationStatus === 'pending' ? '...' : donationStatus === 'success' ? 'Sent!' : 'Donate'}
+                </Button>
+                <Button onClick={handleAddApp} variant="outline" icon={Bookmark} disabled={isAdded}>
+                  {isAdded ? 'Saved' : 'Bookmark'}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
