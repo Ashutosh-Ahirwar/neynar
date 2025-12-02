@@ -133,6 +133,8 @@ export default function MiniApp() {
   const [error, setError] = useState<string | null>(null);
   
   const [isAdded, setIsAdded] = useState(false);
+  // Controls the "Add App" popup visibility
+  const [showAddPopup, setShowAddPopup] = useState(false);
   const [donationStatus, setDonationStatus] = useState<'idle' | 'pending' | 'success'>('idle');
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -140,6 +142,7 @@ export default function MiniApp() {
     try {
       await sdk.actions.addMiniApp();
       setIsAdded(true);
+      setShowAddPopup(false); // Close popup on success
     } catch (e) {
       console.error("Failed to add miniapp:", e);
     }
@@ -154,10 +157,7 @@ export default function MiniApp() {
     
     const text = `${shareText}\n\nCheck yours in the Neynar Score Mini App.`;
     
-    // UPDATED: Use Query Parameters structure
     const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
-    
-    // Creates: https://neynar-lyart.vercel.app/share?score=0.95&username=alice
     const shareUrl = `${appUrl}/share?score=${score.toFixed(2)}&username=${encodeURIComponent(user.username || '')}&pfp=${encodeURIComponent(user.pfpUrl || '')}`;
     
     try {
@@ -226,8 +226,13 @@ export default function MiniApp() {
             displayName: context.user.displayName,
             pfpUrl: context.user.pfpUrl
           });
+          
+          // Check if app is added
           if (context.client && context.client.added) {
             setIsAdded(true);
+          } else {
+            // Show popup if NOT added
+            setShowAddPopup(true);
           }
         }
       } catch (error) {
@@ -359,6 +364,30 @@ export default function MiniApp() {
          </button>
       </div>
 
+      {/* --- ADD APP POPUP --- */}
+      {showAddPopup && !isAdded && (
+        <div className="fixed top-20 left-0 w-full flex justify-center pointer-events-auto z-50 animate-in fade-in slide-in-from-top-4">
+          <div className="bg-[#151516]/95 border border-purple-500/30 p-4 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.15)] max-w-[300px] flex flex-col gap-3 text-center backdrop-blur-md">
+            <h3 className="font-bold text-lg text-white">Bookmark App?</h3>
+            <p className="text-xs text-gray-300">Add to your apps to check your score anytime!</p>
+            <div className="flex gap-2">
+              <button 
+                onClick={(e) => { e.stopPropagation(); setShowAddPopup(false); }}
+                className="flex-1 py-2.5 text-xs text-gray-400 font-semibold hover:text-white transition-colors"
+              >
+                Later
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleAddApp(); }}
+                className="flex-1 bg-purple-600 py-2.5 rounded-xl text-xs font-bold text-white hover:bg-purple-500 transition-colors shadow-lg shadow-purple-900/20"
+              >
+                Add App
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Modal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
         <div className="space-y-5">
           <div className="text-center pt-2">
@@ -411,6 +440,18 @@ export default function MiniApp() {
                   <h4 className="text-white font-semibold text-xs uppercase tracking-wide mb-1">Content</h4>
                   <p className="text-xs leading-relaxed opacity-80">
                     Quality over quantity. Create content you would stop scrolling to read. Avoid spamming.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex gap-3">
+                <div className="mt-0.5 bg-red-500/20 p-1.5 rounded-lg text-red-300 h-fit">
+                  <AlertCircle size={16} />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold text-xs uppercase tracking-wide mb-1">No Spam</h4>
+                  <p className="text-xs leading-relaxed opacity-80">
+                    Don't just post mini-apps or generic AI replies.
                   </p>
                 </div>
               </div>
