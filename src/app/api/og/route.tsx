@@ -10,31 +10,25 @@ export async function GET(request: Request) {
     const pfpUrl = searchParams.get('pfp'); 
     const score = parseFloat(scoreParam || '0').toFixed(2);
     
-    // 2. Load Font with Safety Check
+    // 2. Load Font
     const fontUrl = 'https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/files/inter-latin-700-normal.woff';
     let fontData: ArrayBuffer | null = null;
     
     try {
       const res = await fetch(fontUrl);
-      if (res.ok) {
-        fontData = await res.arrayBuffer();
-      } else {
-        console.warn("Font fetch failed:", res.status);
-      }
+      if (res.ok) fontData = await res.arrayBuffer();
     } catch (e) {
       console.warn("Font fetch error:", e);
     }
 
-    // 3. Load PFP with Safety Check
-    let pfpSrc = ""; // Use a string source (url or base64)
+    // 3. Load PFP
+    let pfpSrc: string | null = null; // Initialize as null
     if (pfpUrl && pfpUrl !== 'undefined' && pfpUrl !== 'null') {
       try {
         const res = await fetch(pfpUrl);
         if (res.ok) {
           const buffer = await res.arrayBuffer();
-          // Convert to Base64 to ensure stability with Satori
           const base64 = Buffer.from(buffer).toString('base64');
-          // Determine mime type (guess png if unknown)
           const contentType = res.headers.get('content-type') || 'image/png';
           pfpSrc = `data:${contentType};base64,${base64}`;
         }
@@ -43,15 +37,15 @@ export async function GET(request: Request) {
       }
     }
 
-    // 4. Determine Color Logic
-    let color = '#fbbf24'; // amber
+    // 4. Color Logic
+    let color = '#fbbf24'; 
     let glow = '#fbbf24';
     const scoreNum = parseFloat(score);
     if (scoreNum >= 0.9) {
-      color = '#34d399'; // emerald
+      color = '#34d399'; 
       glow = '#34d399';
     } else if (scoreNum >= 0.7) {
-      color = '#a855f7'; // purple
+      color = '#a855f7'; 
       glow = '#a855f7';
     }
 
@@ -67,10 +61,10 @@ export async function GET(request: Request) {
             flexDirection: 'column',
             backgroundColor: '#050505',
             backgroundImage: `radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%)`,
-            fontFamily: fontData ? '"Inter"' : 'sans-serif', // Fallback if font fails
+            fontFamily: fontData ? '"Inter"' : 'sans-serif',
           }}
         >
-          {/* Main Glass Card Container */}
+          {/* Main Glass Card */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -82,12 +76,17 @@ export async function GET(request: Request) {
             border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '40px',
             boxShadow: '0 0 80px rgba(0,0,0,0.5)',
-            // Satori doesn't support 'gap', use margin on children instead
           }}>
             
             {/* Header: PFP + Username */}
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: 40, marginBottom: 20 }}>
-              {pfpSrc && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', // Explicit centering
+              marginTop: 40, 
+              marginBottom: 40 // Increased margin to replace gap
+            }}>
+              {pfpSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={pfpSrc}
@@ -98,11 +97,13 @@ export async function GET(request: Request) {
                     borderRadius: '50%',
                     marginRight: '25px',
                     border: '4px solid rgba(255,255,255,0.1)',
-                    objectFit: 'cover' // Ensure PFP fits circle
+                    objectFit: 'cover'
                   }}
                 />
-              )}
+              ) : null}
+              
               <div style={{ 
+                display: 'flex', // Explicit flex
                 fontSize: 50, 
                 color: '#e5e7eb', 
                 fontWeight: 700,
@@ -124,15 +125,18 @@ export async function GET(request: Request) {
                 border: `16px solid ${color}`,
                 boxShadow: `0 0 60px ${glow}`,
                 backgroundColor: 'rgba(0,0,0,0.4)', 
-                position: 'relative',
               }}
             >
               <div style={{ 
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                justifyContent: 'center', // Center content vertically
+                width: '100%',
+                height: '100%'
               }}>
                 <div style={{ 
+                  display: 'flex', // Explicit flex
                   fontSize: 110, 
                   fontWeight: 700,
                   color: '#ffffff',
@@ -142,6 +146,7 @@ export async function GET(request: Request) {
                   {score}
                 </div>
                 <div style={{ 
+                  display: 'flex', // Explicit flex
                   fontSize: 24, 
                   color: color, 
                   marginTop: 10,
@@ -154,14 +159,14 @@ export async function GET(request: Request) {
               </div>
             </div>
 
-            {/* Footer / Branding */}
+            {/* Footer */}
             <div style={{ 
               marginTop: 'auto', 
               marginBottom: 40,
               fontSize: 24,
               color: '#6b7280',
               fontWeight: 700,
-              display: 'flex',
+              display: 'flex', // Explicit flex
               alignItems: 'center'
             }}>
               CHECK YOURS ON FARCASTER
@@ -172,7 +177,6 @@ export async function GET(request: Request) {
       {
         width: 1200,
         height: 800,
-        // Only include fonts if fetch succeeded
         fonts: fontData ? [
           {
             name: 'Inter',
@@ -188,7 +192,6 @@ export async function GET(request: Request) {
     );
   } catch (e: any) {
     console.error("OG Generation Error:", e);
-    // Return a JSON error for better debugging in browser
     return new Response(JSON.stringify({ error: e.message, stack: e.stack }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
