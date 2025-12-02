@@ -1,22 +1,25 @@
 import { Metadata, ResolvingMetadata } from 'next';
 import MiniApp from '@/components/MiniApp';
 
+// In Next.js 15, params is a Promise
 type Props = {
-  params: { score: string; username: string }
+  params: Promise<{ score: string; username: string }>
 }
 
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
+  // Await the params to get the values
+  const { score, username } = await params;
+  
   const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
   
-  const score = params.score;
-  const username = params.username;
+  // Decode the username in case it has special characters
+  const decodedUsername = decodeURIComponent(username);
 
   // Generate dynamic image URL using the OG API
-  // We encodeURIComponent to ensure special characters in usernames don't break the URL
-  const imageUrl = `${appUrl}/api/og?score=${score}&user=${encodeURIComponent(username)}`;
+  const imageUrl = `${appUrl}/api/og?score=${score}&user=${encodeURIComponent(decodedUsername)}`;
 
   const title = `Neynar Score: ${Number(score).toFixed(2)}`;
 
@@ -28,7 +31,7 @@ export async function generateMetadata(
       action: {
         type: "launch_frame",
         name: "Check Neynar Score",
-        url: appUrl, // Launch the app at root to check viewer's own score
+        url: appUrl, 
         splashImageUrl: `${appUrl}/splash.png`,
         splashBackgroundColor: "#000000"
       }
@@ -41,7 +44,7 @@ export async function generateMetadata(
     title: title,
     openGraph: {
       title: title,
-      description: `Check @${username}'s Farcaster Reputation Score`,
+      description: `Check @${decodedUsername}'s Farcaster Reputation Score`,
       images: [imageUrl],
     },
     other: {
@@ -52,6 +55,5 @@ export async function generateMetadata(
 }
 
 export default function SharePage() {
-  // Render the MiniApp component directly
   return <MiniApp />;
 }
