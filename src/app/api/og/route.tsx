@@ -1,5 +1,7 @@
 import { ImageResponse } from 'next/og';
 
+// Disable edge runtime for better compatibility with fonts and image generation limits
+// export const runtime = 'edge'; 
 
 export async function GET(request: Request) {
   try {
@@ -20,6 +22,12 @@ export async function GET(request: Request) {
       glow = 'rgba(168, 85, 247, 0.4)';
     }
 
+    // Fetch the Inter font from Google Fonts
+    // This is crucial because the default environment might not have fonts
+    const fontData = await fetch(
+      new URL('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff')
+    ).then((res) => res.arrayBuffer());
+
     return new ImageResponse(
       (
         <div
@@ -31,52 +39,37 @@ export async function GET(request: Request) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#050505',
-            // Simple font stack ensures rendering
-            fontFamily: '"Inter", sans-serif',
+            // Simple linear gradient background
+            backgroundImage: 'linear-gradient(to bottom, #1a1a2e, #000000)',
             position: 'relative',
           }}
         >
-          {/* Background Gradient */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(to bottom, #1a1a2e, #000000)',
-              zIndex: 0,
-            }}
-          />
-
           {/* Content */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
-            {/* Username - Added text-shadow for better visibility */}
-            <div style={{ fontSize: 48, color: '#e5e7eb', marginBottom: 20, fontWeight: 700, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+            <div style={{ fontSize: 60, color: '#e5e7eb', marginBottom: 20, fontWeight: 700 }}>
               @{username}
             </div>
             
-            {/* Score Circle */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 320,
-                height: 320,
-                borderRadius: '50%',
-                border: `12px solid ${color}`,
-                boxShadow: `0 0 80px ${glow}`,
-                backgroundColor: 'rgba(0,0,0,0.6)',
+                width: 280,
+                height: 280,
+                borderRadius: '140px', // Explicit pixel value for border-radius
+                border: `10px solid ${color}`,
+                boxShadow: `0 0 60px ${glow}`,
+                backgroundColor: 'rgba(0,0,0,0.4)',
                 marginBottom: 30,
               }}
             >
-              <div style={{ fontSize: 100, fontWeight: 900, color: '#ffffff' }}>
+              <div style={{ fontSize: 90, fontWeight: 900, color: '#ffffff' }}>
                 {score.toFixed(2)}
               </div>
             </div>
 
-            <div style={{ fontSize: 24, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 4, fontWeight: 600 }}>
+            <div style={{ fontSize: 32, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 4 }}>
               Neynar Score
             </div>
           </div>
@@ -85,13 +78,21 @@ export async function GET(request: Request) {
       {
         width: 1200,
         height: 800,
+        fonts: [
+          {
+            name: 'Inter',
+            data: fontData,
+            style: 'normal',
+            weight: 400,
+          },
+        ],
         headers: {
           'Cache-Control': 'public, max-age=3600, immutable',
         },
       }
     );
   } catch (e: any) {
-    console.error(`OG Error: ${e.message}`);
+    console.error(`OG Generation Failed: ${e.message}`);
     return new Response(`Failed to generate the image: ${e.message}`, {
       status: 500,
     });
