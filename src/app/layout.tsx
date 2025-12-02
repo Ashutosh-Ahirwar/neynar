@@ -23,7 +23,7 @@ const frame = {
       name: "Check Neynar Score",
       url: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#000000"
+      splashBackgroundColor: "#ffffff"
     }
   }
 };
