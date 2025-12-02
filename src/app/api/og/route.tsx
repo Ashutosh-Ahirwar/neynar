@@ -1,18 +1,20 @@
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'edge';
+// ❌ REMOVE 'edge' runtime to prevent silent crashes and memory limits
+// export const runtime = 'edge'; 
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     
+    // Get params
     const scoreParam = searchParams.get('score');
     const username = searchParams.get('user') || 'User';
     
     // Parse score, default to 0.00
     const score = parseFloat(scoreParam || '0').toFixed(2);
     
-    // Determine color based on score (matching your app logic)
+    // Determine color based on score
     let color = '#fbbf24'; // amber
     let glow = '#fbbf24';
     const scoreNum = parseFloat(score);
@@ -35,7 +37,6 @@ export async function GET(request: Request) {
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            // Use a reliable dark background color
             background: '#050505', 
             position: 'relative',
           }}
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
               fontSize: 60, 
               color: '#e5e7eb', 
               marginBottom: 20, 
-              fontWeight: 900,
+              fontWeight: 700, // ✅ CHANGED from 900 to 700 (safer for default fonts)
               letterSpacing: '-1px'
             }}>
               @{username}
@@ -82,14 +83,18 @@ export async function GET(request: Request) {
                 justifyContent: 'center',
                 width: 300,
                 height: 300,
-                borderRadius: '150px', // Explicit px for safety
+                borderRadius: '150px',
                 border: `12px solid ${color}`,
                 boxShadow: `0 0 80px ${glow}`,
                 backgroundColor: 'rgba(0,0,0,0.5)', 
                 marginBottom: 30,
               }}
             >
-              <div style={{ fontSize: 100, fontWeight: 900, color: '#ffffff' }}>
+              <div style={{ 
+                fontSize: 100, 
+                fontWeight: 700, // ✅ CHANGED from 900 to 700
+                color: '#ffffff' 
+              }}>
                 {score}
               </div>
             </div>
@@ -110,7 +115,6 @@ export async function GET(request: Request) {
       {
         width: 1200,
         height: 800,
-        // Crucial caching headers
         headers: {
           'Cache-Control': 'public, max-age=3600, immutable',
         },
