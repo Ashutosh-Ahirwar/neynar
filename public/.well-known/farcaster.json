@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjM2MjEsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgyY2Q4NWEwOTMyNjFmNTkyNzA4MDRBNkVBNjk3Q2VBNENlQkVjYWZFIn0",
+    "payload": "eyJkb21haW4iOiJ5b2luay5wYXJ0eSJ9",
+    "signature": "MHgwZmJiYWIwODg3YTU2MDFiNDU3MzVkOTQ5MDRjM2Y1NGUxMzVhZTQxOGEzMWQ5ODNhODAzZmZlYWNlZWMyZDYzNWY4ZTFjYWU4M2NhNTAwOTMzM2FmMTc1NDlmMDY2YTVlOWUwNTljNmZiNDUxMzg0Njk1NzBhODNiNjcyZWJjZTFi"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Neynar Score",
+    "iconUrl": "https://neynar-score-miniapp.vercel.app/icon.png",
+    "homeUrl": "https://neynar-score-miniapp.vercel.app",
+    "description": "Check your simulated Neynar Quality Score.",
+    "buttonTitle": "Check Score",
+    "splashImageUrl": "https://neynar-score-miniapp.vercel.app/splash.png",
+    "splashBackgroundColor": "#000000"
+  }
+}
