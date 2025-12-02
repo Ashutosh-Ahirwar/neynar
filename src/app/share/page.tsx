@@ -4,40 +4,44 @@ import MiniApp from '@/components/MiniApp';
 // Ensure this route is always rendered dynamically
 export const dynamic = 'force-dynamic';
 
-type SharePageParams = {
-  score: string;
-  username: string;
-};
-
 type Props = {
-  params: Promise<SharePageParams>; // Updated for Next.js 15
+  // In Next.js 15, searchParams is a Promise
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export async function generateMetadata(
-  { params }: Props,
+  { searchParams }: Props,
   _parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // ✅ FIX: Await params before accessing properties
-  const { score, username } = await params;
+  // 1. Await the searchParams (Next.js 15 requirement)
+  const query = await searchParams;
 
-  const appUrl =
-    process.env.NEXT_PUBLIC_URL || 'https://neynar-lyart.vercel.app';
+  const appUrl = process.env.NEXT_PUBLIC_URL || 'https://neynar-lyart.vercel.app';
 
-  const decodedUsername = decodeURIComponent(username);
+  // 2. Extract and Validate Query Parameters
+  // Handle cases where params might be arrays or undefined
+  const rawScore = query.score;
+  const rawUsername = query.username || query.user; // Support both 'username' and 'user'
 
-  // Normalize score so the title + image URL are always consistent
-  const numericScore = Number(score);
+  const scoreString = Array.isArray(rawScore) ? rawScore[0] : (rawScore || '0');
+  const usernameString = Array.isArray(rawUsername) ? rawUsername[0] : (rawUsername || 'User');
+
+  // 3. Normalize Data
+  const numericScore = Number(scoreString);
   const normalizedScore = Number.isFinite(numericScore)
     ? numericScore.toFixed(2)
     : '0.00';
 
-  // This hits your existing /api/og endpoint
+  const decodedUsername = decodeURIComponent(usernameString);
+
+  // 4. Construct Image URL
   const imageUrl = `${appUrl}/api/og?score=${encodeURIComponent(
     normalizedScore
   )}&user=${encodeURIComponent(decodedUsername)}`;
 
   const title = `Neynar Score: ${normalizedScore}`;
 
+  // 5. Build Embed JSON
   const frame = {
     version: '1',
     imageUrl,
@@ -46,7 +50,7 @@ export async function generateMetadata(
       action: {
         type: 'launch_frame',
         name: 'Check Neynar Score',
-        url: appUrl, // Opens your home miniapp URL
+        url: appUrl, // Opens the main app when clicked
         splashImageUrl: `${appUrl}/splash.png`,
         splashBackgroundColor: '#000000',
       },
@@ -70,7 +74,6 @@ export async function generateMetadata(
       ],
     },
     other: {
-      // Both for compatibility; clients usually read one of these
       'fc:frame': stringifiedFrame,
       'fc:miniapp': stringifiedFrame,
     },
@@ -78,6 +81,5 @@ export async function generateMetadata(
 }
 
 export default function SharePage() {
-  // ✅ UI / functionality unchanged
   return <MiniApp />;
 }

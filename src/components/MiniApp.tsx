@@ -141,9 +141,10 @@ export default function MiniApp() {
     
     const text = `${shareText}\n\nCheck yours in the Neynar Score Mini App.`;
     
-    // UPDATED: Use path-based URL for cleaner sharing and reliable metadata
+    // UPDATED: Use Query Parameters structure
     const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
-    const shareUrl = `${appUrl}/share/${score.toFixed(2)}/${user.username}`;
+    // Creates: https://neynar-lyart.vercel.app/share?score=0.95&username=alice
+    const shareUrl = `${appUrl}/share?score=${score.toFixed(2)}&username=${user.username}`;
     
     try {
       await sdk.actions.composeCast({ 
