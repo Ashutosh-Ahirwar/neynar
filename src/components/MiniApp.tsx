@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { 
-  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search
+  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info
 } from 'lucide-react';
 
 // --- Types ---
@@ -25,7 +25,7 @@ const Button = ({
 }: {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   className?: string;
   disabled?: boolean;
   icon?: React.ElementType;
@@ -35,6 +35,7 @@ const Button = ({
     primary: "bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-900/20",
     secondary: "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm",
     outline: "border-2 border-purple-500/30 text-purple-300 hover:bg-purple-500/10",
+    ghost: "bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
   };
 
   return (
@@ -49,10 +50,28 @@ const Button = ({
   );
 };
 
+const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-sm bg-[#1c1c1e] rounded-2xl border border-white/10 shadow-2xl p-6 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-1"
+        >
+          <X size={20} />
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const ScoreGauge = ({ score }: { score: number }) => {
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
-  // Score is now 0-1, so we map 0-1 directly to the circle progress
+  // Score is 0-1
   const offset = circumference - (score) * circumference;
   
   const getColor = (s: number) => {
@@ -62,13 +81,12 @@ const ScoreGauge = ({ score }: { score: number }) => {
   };
 
   return (
-    <div className="relative flex items-center justify-center mb-8 animate-in zoom-in duration-500">
+    <div className="relative flex items-center justify-center mb-6 animate-in zoom-in duration-500">
       <svg className="transform -rotate-90 w-48 h-48">
         <circle className="text-white/5" strokeWidth="12" stroke="currentColor" fill="transparent" r={radius} cx="96" cy="96" />
         <circle className={`${getColor(score)} transition-all duration-1000 ease-out`} strokeWidth="12" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="96" cy="96" />
       </svg>
       <div className="absolute flex flex-col items-center">
-        {/* Display Raw Score */}
         <span className="text-4xl font-bold text-white tracking-tighter">{score.toFixed(4)}</span>
         <span className="text-xs font-medium text-gray-400 uppercase tracking-widest mt-1">Neynar Score</span>
       </div>
@@ -81,11 +99,12 @@ export default function MiniApp() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [user, setUser] = useState<UserContext | null>(null);
   
-  const [score, setScore] = useState<number | null>(null); // Null initially
+  const [score, setScore] = useState<number | null>(null);
   const [isLoadingScore, setIsLoadingScore] = useState(false);
   
   const [isAdded, setIsAdded] = useState(false);
   const [donationStatus, setDonationStatus] = useState<'idle' | 'pending' | 'success'>('idle');
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   const handleAddApp = useCallback(async () => {
     try {
@@ -124,7 +143,6 @@ export default function MiniApp() {
     }
   }, []);
 
-  // New function to handle manual fetch
   const handleCheckScore = async () => {
     if (!user) return;
     setIsLoadingScore(true);
@@ -138,7 +156,6 @@ export default function MiniApp() {
       const data = await response.json();
       
       if (data.users && data.users[0]) {
-        // Use the raw score directly (usually 0.0 to 1.0)
         const userScore = data.users[0].score || 0;
         setScore(userScore);
       }
@@ -198,7 +215,7 @@ export default function MiniApp() {
             </div>
           </div>
           <div className="flex gap-2">
-            {!isAdded && <button onClick={handleAddApp} className="p-2 bg-white/5 rounded-full"><Bookmark size={20} /></button>}
+            {!isAdded && <button onClick={handleAddApp} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><Bookmark size={20} /></button>}
             {user?.pfpUrl && <img src={user.pfpUrl} alt="Profile" className="w-9 h-9 rounded-full border border-white/10" />}
           </div>
         </header>
@@ -209,7 +226,6 @@ export default function MiniApp() {
             <p className="text-gray-400 text-sm">Check your current Neynar reputation score.</p>
           </div>
 
-          {/* Conditional Rendering: Show Button if no score, otherwise show Gauge */}
           {score === null ? (
             <div className="flex-1 flex flex-col items-center justify-center mb-8">
               <div className="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
@@ -231,22 +247,87 @@ export default function MiniApp() {
             <ScoreGauge score={score} />
           )}
 
-          {/* Actions - Only visible after score is loaded */}
           {score !== null && (
             <div className="space-y-3 mt-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
               <Button onClick={handleShare} icon={Share}>Share Score</Button>
-              <div className="grid grid-cols-2 gap-3">
-                <Button onClick={handleDonate} variant="secondary" icon={donationStatus === 'success' ? CheckCircle2 : Heart}>
-                  {donationStatus === 'pending' ? '...' : donationStatus === 'success' ? 'Sent!' : 'Donate'}
-                </Button>
-                <Button onClick={handleAddApp} variant="outline" icon={Bookmark} disabled={isAdded}>
-                  {isAdded ? 'Saved' : 'Bookmark'}
-                </Button>
-              </div>
+              
+              <Button 
+                onClick={() => setShowInfoModal(true)} 
+                variant="outline" 
+                icon={Info}
+              >
+                How to improve score?
+              </Button>
             </div>
           )}
+
+          {/* Subtle Donate Footer */}
+          <div className="mt-8 pt-4 border-t border-white/5 text-center">
+             <button 
+               onClick={handleDonate}
+               disabled={donationStatus !== 'idle'}
+               className="text-xs text-gray-600 hover:text-purple-400 transition-colors flex items-center justify-center gap-1.5 mx-auto"
+             >
+                {donationStatus === 'success' ? (
+                  <CheckCircle2 size={12} className="text-green-500" />
+                ) : (
+                  <Heart size={12} />
+                )}
+                {donationStatus === 'pending' ? 'Processing...' : 
+                 donationStatus === 'success' ? 'Thank You!' : 'Donate 0.0005 ETH (Base)'}
+             </button>
+          </div>
         </div>
       </main>
+
+      {/* Info Modal */}
+      <Modal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-3 text-purple-400">
+              <Trophy size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-white">Neynar User Score</h3>
+            <p className="text-gray-400 text-xs mt-1">A measure of account quality (0.0 - 1.0)</p>
+          </div>
+
+          <div className="space-y-4 text-sm text-gray-300">
+            <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+              <h4 className="text-white font-semibold mb-1 text-xs uppercase tracking-wider">What is it?</h4>
+              <p className="text-xs leading-relaxed">
+                It reflects the confidence in a user being high-quality. It is <strong>not</strong> proof of humanity, but filters out spam and low-quality AI slop. Scores update weekly.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-2 text-xs uppercase tracking-wider">How to Improve?</h4>
+              <ul className="space-y-3">
+                <li className="flex gap-3">
+                  <span className="text-purple-400 font-bold">1.</span>
+                  <span><strong>Authentic Content:</strong> Don't just cast "gm" or repost internet photos. Share original thoughts and personal stories.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-purple-400 font-bold">2.</span>
+                  <span><strong>No Spam:</strong> Avoid only posting mini-apps or generic AI-generated replies.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-purple-400 font-bold">3.</span>
+                  <span><strong>Quality Profile:</strong> Use a clear PFP, write a unique bio, and avoid random-number usernames.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-purple-400 font-bold">4.</span>
+                  <span><strong>Connect:</strong> Engage in real conversations. Don't just broadcast.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <Button onClick={() => setShowInfoModal(false)} variant="secondary">
+            Got it
+          </Button>
+        </div>
+      </Modal>
+
     </div>
   );
 }
