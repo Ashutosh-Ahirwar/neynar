@@ -8,14 +8,15 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, // Prevents zooming in the Farcaster mobile browser
+  userScalable: false, 
 };
 
-// Default fallback metadata
-const appUrl = "https://neynar-lyart.vercel.app";
+// Default fallback metadata for the main home page
+const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
+
 const frame = {
   version: "1",
-  imageUrl: `${appUrl}/hero.png`,
+  imageUrl: `${appUrl}/hero.png`, // Uses your hero.png route
   button: {
     title: "Check My Score",
     action: {
@@ -28,6 +29,8 @@ const frame = {
   }
 };
 
+const stringifiedFrame = JSON.stringify(frame);
+
 export const metadata: Metadata = {
   title: "Check Neynar Score",
   description: "Check your Farcaster Reputation Score",
@@ -37,8 +40,8 @@ export const metadata: Metadata = {
     images: [`${appUrl}/hero.png`],
   },
   other: {
-    "fc:frame": JSON.stringify(frame),
-    "fc:miniapp": JSON.stringify(frame), // Adding the new standard tag as well
+    "fc:frame": stringifiedFrame,
+    "fc:miniapp": stringifiedFrame,
   },
 };
 

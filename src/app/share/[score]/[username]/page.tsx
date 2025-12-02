@@ -14,8 +14,9 @@ export async function generateMetadata(
   const score = params.score;
   const username = params.username;
 
-  // Generate dynamic image URL using the existing OG API
-  const imageUrl = `${appUrl}/api/og?score=${score}&user=${username}`;
+  // Generate dynamic image URL using the OG API
+  // We encodeURIComponent to ensure special characters in usernames don't break the URL
+  const imageUrl = `${appUrl}/api/og?score=${score}&user=${encodeURIComponent(username)}`;
 
   const title = `Neynar Score: ${Number(score).toFixed(2)}`;
 
@@ -51,6 +52,6 @@ export async function generateMetadata(
 }
 
 export default function SharePage() {
-  // Render the same MiniApp component
+  // Render the MiniApp component directly
   return <MiniApp />;
 }
