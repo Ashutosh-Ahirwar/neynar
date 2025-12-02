@@ -271,7 +271,7 @@ export default function MiniApp() {
             // --- Welcome State ---
             <div className="flex flex-col items-center animate-in zoom-in duration-500">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-3">Hello, {user?.displayName || 'User'}</h2>
+                <h2 className="text-2xl font-bold mb-3">Hello, @{user?.username || 'user'}</h2>
                 <div className="bg-white/5 rounded-2xl p-5 border border-white/10 max-w-xs mx-auto backdrop-blur-sm">
                    <div className="flex items-center gap-2 mb-2 text-purple-300">
                       <ShieldCheck size={18} />
@@ -283,14 +283,15 @@ export default function MiniApp() {
                 </div>
               </div>
 
-              <div className="w-24 h-24 bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 rounded-full flex items-center justify-center mb-8 border border-white/5 shadow-2xl shadow-purple-900/20">
-                <Search className="text-purple-300" size={36} />
+              <div className="mb-8">
+                {/* Search icon moved inside the button via icon prop */}
               </div>
               <Button 
                 onClick={handleCheckScore} 
                 disabled={isLoadingScore}
                 className="max-w-[220px]"
                 variant="primary"
+                icon={isLoadingScore ? undefined : Search}
               >
                 {isLoadingScore ? (
                   <><Loader2 className="animate-spin" size={18} /> Calculating...</>
@@ -350,7 +351,6 @@ export default function MiniApp() {
         <div className="space-y-5">
           <div className="text-center pt-2">
             <h3 className="text-xl font-bold text-white mb-1">How to Improve Score?</h3>
-            <p className="text-gray-400 text-xs">Based on community guidelines</p>
           </div>
 
           <div className="space-y-4 text-sm text-gray-300">
