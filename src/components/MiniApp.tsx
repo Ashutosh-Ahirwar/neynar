@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { 
-  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info, ChevronRight, ShieldCheck
+  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info, ChevronRight, ShieldCheck, UserCheck, MessageCircle, Sparkles
 } from 'lucide-react';
 
 // --- Types ---
@@ -84,7 +84,7 @@ const ScoreGauge = ({ score }: { score: number }) => {
   };
 
   return (
-    <div className="relative flex items-center justify-center mb-2 mt-2 animate-in zoom-in duration-700">
+    <div className="relative flex items-center justify-center mb-4 mt-2 animate-in zoom-in duration-700">
       {/* Background Glow */}
       <div className={`absolute inset-0 bg-purple-500/10 blur-3xl rounded-full scale-150 opacity-50`} />
       
@@ -234,7 +234,7 @@ export default function MiniApp() {
     <div className="min-h-screen bg-[#000000] text-white font-sans selection:bg-purple-500/30">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
       
-      <main className="relative max-w-md mx-auto p-6 flex flex-col min-h-screen pb-20">
+      <main className="relative max-w-md mx-auto p-6 flex flex-col min-h-screen pb-24">
         
         {/* Header */}
         <header className="flex items-center justify-between mb-4 animate-in slide-in-from-top-4 duration-500">
@@ -300,11 +300,14 @@ export default function MiniApp() {
               </Button>
             </div>
           ) : (
-            // --- Result State (Compact) ---
-            <div className="flex flex-col items-center w-full justify-between h-full py-4">
-              <ScoreGauge score={score} />
+            // --- Result State (Optimized Layout) ---
+            <div className="flex flex-col items-center w-full h-full">
+              {/* Reduced margins on gauge to fit content better */}
+              <div className="flex-shrink-0">
+                <ScoreGauge score={score} />
+              </div>
 
-              <div className="w-full space-y-3 mt-auto animate-in slide-in-from-bottom-8 duration-500 delay-100">
+              <div className="w-full space-y-3 mt-4 animate-in slide-in-from-bottom-8 duration-500 delay-100 flex-shrink-0">
                 <Button onClick={handleShare} icon={Share} variant="primary">
                   Share Score
                 </Button>
@@ -344,48 +347,61 @@ export default function MiniApp() {
 
       {/* Info Modal */}
       <Modal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
-        <div className="space-y-6">
+        <div className="space-y-5">
           <div className="text-center pt-2">
-            <div className="w-14 h-14 bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-purple-300 border border-purple-500/20">
-              <Trophy size={28} />
-            </div>
-            <h3 className="text-2xl font-bold text-white">Neynar Score</h3>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <span className="bg-white/10 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider text-gray-300 uppercase">Metric</span>
-              <span className="text-gray-400 text-xs">0.0 to 1.0</span>
-            </div>
+            <h3 className="text-xl font-bold text-white mb-1">How to Improve Score?</h3>
+            <p className="text-gray-400 text-xs">Based on community guidelines</p>
           </div>
 
           <div className="space-y-4 text-sm text-gray-300">
-            <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-              <h4 className="text-white font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-2">
-                <Info size={14} className="text-blue-400" /> What is it?
-              </h4>
-              <p className="text-xs leading-relaxed opacity-80">
-                It reflects the confidence in a user being high-quality. It filters out spam and low-quality AI slop. Scores update weekly.
-              </p>
-            </div>
+            <div className="space-y-3">
+              <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex gap-3">
+                <div className="mt-0.5 bg-purple-500/20 p-1.5 rounded-lg text-purple-300 h-fit">
+                  <ShieldCheck size={16} />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold text-xs uppercase tracking-wide mb-1">Authenticity</h4>
+                  <p className="text-xs leading-relaxed opacity-80">
+                    Don't be a bot. Avoid "gm" farming, thoughtless AI replies, or reposting stolen content. Authenticity wins.
+                  </p>
+                </div>
+              </div>
 
-            <div>
-              <h4 className="text-white font-semibold mb-3 text-xs uppercase tracking-wider pl-1">How to Improve?</h4>
-              <ul className="space-y-3">
-                <li className="flex gap-3 items-start">
-                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-300 mt-0.5">1</span>
-                  <span><strong>Authentic Content:</strong> Share original thoughts and personal stories. Avoid generic "gm" posts.</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-300 mt-0.5">2</span>
-                  <span><strong>No Spam:</strong> Don't just post mini-apps or generic AI replies.</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-300 mt-0.5">3</span>
-                  <span><strong>Quality Profile:</strong> Clear PFP, unique bio, and a recognizable username.</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-300 mt-0.5">4</span>
-                  <span><strong>Connect:</strong> Engage in real conversations. Don't just broadcast.</span>
-                </li>
-              </ul>
+              <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex gap-3">
+                 <div className="mt-0.5 bg-blue-500/20 p-1.5 rounded-lg text-blue-300 h-fit">
+                  <UserCheck size={16} />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold text-xs uppercase tracking-wide mb-1">Profile Hygiene</h4>
+                  <p className="text-xs leading-relaxed opacity-80">
+                    Clean username (no random numbers), high-quality PFP, clear bio. Aim for a healthy following ratio.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex gap-3">
+                <div className="mt-0.5 bg-green-500/20 p-1.5 rounded-lg text-green-300 h-fit">
+                  <MessageCircle size={16} />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold text-xs uppercase tracking-wide mb-1">Communication</h4>
+                  <p className="text-xs leading-relaxed opacity-80">
+                    Talk like a real person. Ask open questions. Engage with context. Don't just broadcast links or mini-apps.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex gap-3">
+                <div className="mt-0.5 bg-amber-500/20 p-1.5 rounded-lg text-amber-300 h-fit">
+                  <Sparkles size={16} />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold text-xs uppercase tracking-wide mb-1">Content</h4>
+                  <p className="text-xs leading-relaxed opacity-80">
+                    Quality over quantity. Create content you would stop scrolling to read. Avoid spamming.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
