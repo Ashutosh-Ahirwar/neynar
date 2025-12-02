@@ -8,11 +8,13 @@ export async function GET(request: Request) {
     const scoreParam = searchParams.get('score');
     const username = searchParams.get('user') || 'User';
     
+    // Default to 0 if parsing fails
     const score = parseFloat(scoreParam || '0');
     
     // Determine color based on score
-    let color = '#fbbf24'; // amber
+    let color = '#fbbf24'; // amber (default)
     let glow = 'rgba(251, 191, 36, 0.4)';
+    
     if (score >= 0.9) {
       color = '#34d399'; // emerald
       glow = 'rgba(52, 211, 153, 0.4)';
@@ -36,7 +38,7 @@ export async function GET(request: Request) {
             position: 'relative',
           }}
         >
-          {/* Background Gradient */}
+          {/* Background Gradient - using simple div for max compatibility */}
           <div
             style={{
               position: 'absolute',
@@ -44,37 +46,40 @@ export async function GET(request: Request) {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundImage: 'linear-gradient(to bottom, #1a1a2e, #000000)',
+              background: 'linear-gradient(to bottom, #1a1a2e, #000000)',
               zIndex: 0,
             }}
           />
 
-          {/* Content */}
+          {/* Content Container */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
-            <div style={{ fontSize: 36, color: '#e5e7eb', marginBottom: 20, fontWeight: 700 }}>
+            {/* Username */}
+            <div style={{ fontSize: 48, color: '#e5e7eb', marginBottom: 24, fontWeight: 700 }}>
               @{username}
             </div>
             
+            {/* Score Circle */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 280,
-                height: 280,
+                width: 320,
+                height: 320,
                 borderRadius: '50%',
-                border: `10px solid ${color}`,
-                boxShadow: `0 0 60px ${glow}`,
+                border: `12px solid ${color}`,
+                boxShadow: `0 0 80px ${glow}`,
                 backgroundColor: 'rgba(0,0,0,0.4)',
-                marginBottom: 30,
+                marginBottom: 40,
               }}
             >
-              <div style={{ fontSize: 90, fontWeight: 900, color: '#ffffff' }}>
+              <div style={{ fontSize: 110, fontWeight: 900, color: '#ffffff' }}>
                 {score.toFixed(2)}
               </div>
             </div>
 
-            <div style={{ fontSize: 24, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 4 }}>
+            {/* Label */}
+            <div style={{ fontSize: 32, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 6 }}>
               Neynar Score
             </div>
           </div>
@@ -83,16 +88,14 @@ export async function GET(request: Request) {
       {
         width: 1200,
         height: 800,
-        // Essential for Farcaster to cache and serve the image correctly
         headers: {
-          'Cache-Control': 'public, max-age=3600, immutable',
+          'Cache-Control': 'no-store, no-cache', // Disable caching during debug
+          'Content-Type': 'image/png',
         },
       }
     );
   } catch (e: any) {
-    console.log(`${e.message}`);
-    return new Response(`Failed to generate the image: ${e.message}`, {
-      status: 500,
-    });
+    console.error(`OG Image Error: ${e.message}`);
+    return new Response(`Failed to generate image`, { status: 500 });
   }
 }

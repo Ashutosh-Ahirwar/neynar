@@ -1,7 +1,7 @@
 import { Metadata, ResolvingMetadata } from 'next';
 import MiniApp from '@/components/MiniApp';
 
-// CRITICAL: Forces this page to be dynamic so it can read params correctly
+// Force dynamic rendering to handle params correctly
 export const dynamic = 'force-dynamic';
 
 type Props = {
@@ -14,8 +14,13 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { score, username } = await params;
   
+  // Debug log (check Vercel logs)
+  console.log(`Generating metadata for: ${username}, score: ${score}`);
+
   const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
   const decodedUsername = decodeURIComponent(username);
+  
+  // Construct image URL
   const imageUrl = `${appUrl}/api/og?score=${score}&user=${encodeURIComponent(decodedUsername)}`;
 
   const title = `Neynar Score: ${Number(score).toFixed(2)}`;
@@ -30,7 +35,7 @@ export async function generateMetadata(
         name: "Check Neynar Score",
         url: appUrl, 
         splashImageUrl: `${appUrl}/splash.png`,
-        splashBackgroundColor: "#ffffff"
+        splashBackgroundColor: "#000000"
       }
     }
   };
