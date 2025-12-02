@@ -64,100 +64,115 @@ export async function GET(request: Request) {
             fontFamily: fontData ? '"Inter"' : 'sans-serif',
           }}
         >
-          {/* Header: PFP + Username */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            marginTop: 60, // Adjusted top spacing
-            marginBottom: 40
-          }}>
-            {pfpSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={pfpSrc}
-                alt=""
-                width="90"
-                height="90"
-                style={{
-                  borderRadius: '50%',
-                  marginRight: '30px',
-                  border: '4px solid rgba(255,255,255,0.1)',
-                  objectFit: 'cover'
-                }}
-              />
-            ) : null}
-            
-            <div style={{ 
-              display: 'flex',
-              fontSize: 60, // Slightly larger
-              color: '#e5e7eb', 
-              fontWeight: 700,
-              letterSpacing: '-1px'
-            }}>
-              @{username}
-            </div>
-          </div>
-          
-          {/* Score Ring */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 360, // Larger ring since we have more space
-              height: 360,
-              borderRadius: '50%',
-              border: `18px solid ${color}`,
-              boxShadow: `0 0 80px ${glow}`,
-              backgroundColor: 'rgba(0,0,0,0.4)', 
-            }}
-          >
-            <div style={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              height: '100%'
-            }}>
-              <div style={{ 
-                display: 'flex',
-                fontSize: 130, 
-                fontWeight: 700,
-                color: '#ffffff',
-                lineHeight: 1,
-                textShadow: '0 4px 10px rgba(0,0,0,0.5)',
-              }}>
-                {score}
-              </div>
-              <div style={{ 
-                display: 'flex',
-                fontSize: 28, 
-                color: color, 
-                marginTop: 10,
-                textTransform: 'uppercase', 
-                letterSpacing: '4px',
-                fontWeight: 700
-              }}>
-                Neynar Score
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div style={{ 
-            marginTop: 'auto', 
-            marginBottom: 60,
-            fontSize: 24,
-            color: '#6b7280',
-            fontWeight: 700,
+          {/* Main Glass Card with Curved Edges */}
+          <div style={{
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            textTransform: 'uppercase',
-            letterSpacing: '2px'
+            justifyContent: 'center',
+            width: '90%',
+            height: '85%',
+            backgroundColor: 'rgba(255, 255, 255, 0.03)', // Glass effect
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '40px', // The curved edges
+            boxShadow: '0 0 80px rgba(0,0,0,0.5)',
           }}>
-            CHECK YOURS ON MINIAPP
+            
+            {/* Header: PFP + Username */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              marginTop: 40, 
+              marginBottom: 40
+            }}>
+              {pfpSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={pfpSrc}
+                  alt=""
+                  width="80"
+                  height="80"
+                  style={{
+                    borderRadius: '50%',
+                    marginRight: '25px',
+                    border: '4px solid rgba(255,255,255,0.1)',
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : null}
+              
+              <div style={{ 
+                display: 'flex',
+                fontSize: 50, 
+                color: '#e5e7eb', 
+                fontWeight: 700,
+                letterSpacing: '-1px'
+              }}>
+                @{username}
+              </div>
+            </div>
+            
+            {/* Score Ring */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 320,
+                height: 320,
+                borderRadius: '50%',
+                border: `16px solid ${color}`,
+                boxShadow: `0 0 60px ${glow}`,
+                backgroundColor: 'rgba(0,0,0,0.4)', 
+              }}
+            >
+              <div style={{ 
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '100%'
+              }}>
+                <div style={{ 
+                  display: 'flex',
+                  fontSize: 110, 
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  lineHeight: 1,
+                  textShadow: '0 4px 10px rgba(0,0,0,0.5)',
+                }}>
+                  {score}
+                </div>
+                <div style={{ 
+                  display: 'flex',
+                  fontSize: 24, 
+                  color: color, 
+                  marginTop: 10,
+                  textTransform: 'uppercase', 
+                  letterSpacing: '4px',
+                  fontWeight: 700
+                }}>
+                  Neynar Score
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{ 
+              marginTop: 'auto', 
+              marginBottom: 40,
+              fontSize: 24,
+              color: '#6b7280',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              textTransform: 'uppercase',
+              letterSpacing: '2px'
+            }}>
+              CHECK YOURS ON MINIAPP
+            </div>
           </div>
         </div>
       ),
