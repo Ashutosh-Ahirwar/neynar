@@ -33,10 +33,13 @@ export async function generateMetadata(
 
   const decodedUsername = decodeURIComponent(usernameString);
 
-  // 4. Construct Image URL
+  const rawPfp = query.pfp;
+  const pfpString = Array.isArray(rawPfp) ? rawPfp[0] : (rawPfp || '');
+
+  // Construct URL with PFP
   const imageUrl = `${appUrl}/api/og?score=${encodeURIComponent(
     normalizedScore
-  )}&user=${encodeURIComponent(decodedUsername)}`;
+  )}&user=${encodeURIComponent(decodedUsername)}&pfp=${encodeURIComponent(pfpString)}`;
 
   const title = `Neynar Score: ${normalizedScore}`;
 

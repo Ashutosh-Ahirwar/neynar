@@ -156,8 +156,9 @@ export default function MiniApp() {
     
     // UPDATED: Use Query Parameters structure
     const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
+    
     // Creates: https://neynar-lyart.vercel.app/share?score=0.95&username=alice
-    const shareUrl = `${appUrl}/share?score=${score.toFixed(2)}&username=${user.username}`;
+    const shareUrl = `${appUrl}/share?score=${score.toFixed(2)}&username=${encodeURIComponent(user.username || '')}&pfp=${encodeURIComponent(user.pfpUrl || '')}`;
     
     try {
       await sdk.actions.composeCast({ 

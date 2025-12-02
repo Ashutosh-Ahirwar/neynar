@@ -1,8 +1,5 @@
 import { ImageResponse } from 'next/og';
 
-// We use Node.js runtime for better stability with file fetching
-// export const runtime = 'edge'; 
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -10,25 +7,25 @@ export async function GET(request: Request) {
     // 1. Get Params
     const scoreParam = searchParams.get('score');
     const username = searchParams.get('user') || 'User';
+    const pfpUrl = searchParams.get('pfp'); // New Param
     const score = parseFloat(scoreParam || '0').toFixed(2);
     
-    // 2. Load Font with Fallback
-    // Using jsDelivr is much more reliable than raw GitHub links
+    // 2. Load Font (Inter Bold)
     const fontUrl = 'https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/files/inter-latin-700-normal.woff';
-    
-    let fontData: ArrayBuffer | null = null;
-    try {
-      const res = await fetch(fontUrl);
-      if (res.ok) {
-        fontData = await res.arrayBuffer();
-      } else {
-        console.warn(`Failed to fetch font: ${res.status} ${res.statusText}`);
+    const fontData = await fetch(fontUrl).then((res) => res.arrayBuffer());
+
+    // 3. Load PFP (if provided)
+    let pfpData: ArrayBuffer | null = null;
+    if (pfpUrl) {
+      try {
+        const res = await fetch(pfpUrl);
+        if (res.ok) pfpData = await res.arrayBuffer();
+      } catch (e) {
+        console.warn("Failed to fetch PFP", e);
       }
-    } catch (e) {
-      console.warn("Font fetch failed, falling back to system font", e);
     }
 
-    // Determine Color Logic
+    // 4. Determine Color Logic
     let color = '#fbbf24'; // amber
     let glow = '#fbbf24';
     const scoreNum = parseFloat(score);
@@ -39,16 +36,6 @@ export async function GET(request: Request) {
       color = '#a855f7'; // purple
       glow = '#a855f7';
     }
-
-    // Prepare fonts array only if fetch succeeded
-    const fonts = fontData ? [
-      {
-        name: 'Inter',
-        data: fontData,
-        style: 'normal' as const,
-        weight: 700 as const,
-      },
-    ] : undefined;
 
     return new ImageResponse(
       (
@@ -61,31 +48,49 @@ export async function GET(request: Request) {
             justifyContent: 'center',
             flexDirection: 'column',
             backgroundColor: '#050505',
-            // Simple radial gradient is safe
-            backgroundImage: 'radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%)',
-            // Fallback to sans-serif if Inter fails
-            fontFamily: fontData ? '"Inter"' : 'sans-serif',
+            backgroundImage: `radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%)`,
+            fontFamily: '"Inter"',
           }}
         >
-          {/* Content Layer */}
+          {/* Main Glass Card Container */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            textShadow: '0 4px 20px rgba(0,0,0,0.8)', 
+            width: '90%',
+            height: '85%',
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '40px',
+            boxShadow: '0 0 80px rgba(0,0,0,0.5)',
+            gap: '20px' // Flex gap simulation
           }}>
             
-            {/* Username */}
-            <div style={{ 
-              display: 'flex',
-              fontSize: 60, 
-              color: '#e5e7eb', 
-              marginBottom: 20, 
-              fontWeight: 700,
-              letterSpacing: '-1px'
-            }}>
-              @{username}
+            {/* Header: PFP + Username */}
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: 40, marginBottom: 20 }}>
+              {pfpData && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={pfpData as any}
+                  alt=""
+                  width="80"
+                  height="80"
+                  style={{
+                    borderRadius: '50%',
+                    marginRight: '25px',
+                    border: '4px solid rgba(255,255,255,0.1)'
+                  }}
+                />
+              )}
+              <div style={{ 
+                fontSize: 50, 
+                color: '#e5e7eb', 
+                fontWeight: 700,
+                letterSpacing: '-1px'
+              }}>
+                @{username}
+              </div>
             </div>
             
             {/* Score Ring */}
@@ -94,35 +99,53 @@ export async function GET(request: Request) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 300,
-                height: 300,
-                borderRadius: '150px',
-                border: `12px solid ${color}`,
-                boxShadow: `0 0 50px ${glow}`,
-                backgroundColor: 'rgba(0,0,0,0.3)', 
-                marginBottom: 30,
+                width: 320,
+                height: 320,
+                borderRadius: '50%',
+                border: `16px solid ${color}`, // Thicker border
+                boxShadow: `0 0 60px ${glow}`,
+                backgroundColor: 'rgba(0,0,0,0.4)', 
+                position: 'relative',
               }}
             >
               <div style={{ 
                 display: 'flex',
-                fontSize: 100, 
-                fontWeight: 700,
-                color: '#ffffff' 
+                flexDirection: 'column',
+                alignItems: 'center',
               }}>
-                {score}
+                <div style={{ 
+                  fontSize: 110, 
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  lineHeight: 1,
+                  textShadow: '0 4px 10px rgba(0,0,0,0.5)',
+                }}>
+                  {score}
+                </div>
+                <div style={{ 
+                  fontSize: 24, 
+                  color: color, 
+                  marginTop: 10,
+                  textTransform: 'uppercase', 
+                  letterSpacing: '4px',
+                  fontWeight: 700
+                }}>
+                  Neynar Score
+                </div>
               </div>
             </div>
 
-            {/* Label */}
+            {/* Footer / Branding */}
             <div style={{ 
+              marginTop: 'auto', 
+              marginBottom: 40,
+              fontSize: 24,
+              color: '#6b7280',
+              fontWeight: 700,
               display: 'flex',
-              fontSize: 32, 
-              color: '#9ca3af', 
-              textTransform: 'uppercase', 
-              letterSpacing: '6px',
-              fontWeight: 700
+              alignItems: 'center'
             }}>
-              Neynar Score
+              CHECK YOURS ON FARCASTER
             </div>
           </div>
         </div>
@@ -130,7 +153,14 @@ export async function GET(request: Request) {
       {
         width: 1200,
         height: 800,
-        fonts: fonts, // Pass the fonts array (or undefined)
+        fonts: [
+          {
+            name: 'Inter',
+            data: fontData,
+            style: 'normal',
+            weight: 700,
+          },
+        ],
         headers: {
           'Cache-Control': 'public, max-age=3600, immutable',
         },
@@ -138,10 +168,6 @@ export async function GET(request: Request) {
     );
   } catch (e: any) {
     console.error("OG Generation Error:", e);
-    // Return a JSON error instead of crashing, easier to debug in browser
-    return new Response(JSON.stringify({ error: `Failed to generate image: ${e.message}` }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
   }
 }
