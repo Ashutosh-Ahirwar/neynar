@@ -135,16 +135,15 @@ export default function MiniApp() {
   const handleShare = useCallback(async () => {
     if (!user || score === null) return;
     
-    // Dynamic share text based on score
     let shareText = `My Neynar Score is ${score.toFixed(2)}!`;
     if (score >= 0.9) shareText = `I'm a top-tier user! My Neynar Score is ${score.toFixed(2)} 💎`;
     else if (score >= 0.7) shareText = `Checking my rep. Neynar Score: ${score.toFixed(2)} 🚀`;
     
     const text = `${shareText}\n\nCheck yours in the Neynar Score Mini App.`;
     
-    // Construct Dynamic Share URL
-    const appUrl = "https://neynar-lyart.vercel.app";
-    const shareUrl = `${appUrl}/?score=${score}&user=${user.username}`;
+    // UPDATED: Use path-based URL for cleaner sharing and reliable metadata
+    const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
+    const shareUrl = `${appUrl}/share/${score.toFixed(2)}/${user.username}`;
     
     try {
       await sdk.actions.composeCast({ 
@@ -177,7 +176,6 @@ export default function MiniApp() {
     setIsLoadingScore(true);
     setError(null);
     try {
-      // Use our new secure backend route
       const response = await fetch(`/api/neynar/score?fid=${user.fid}`);
       
       if (!response.ok) {
@@ -187,7 +185,6 @@ export default function MiniApp() {
       
       const data = await response.json();
       
-      // Update score and potentially update PFP/Username if they changed
       setScore(data.score);
       if (data.username && data.username !== user.username) {
         setUser(prev => prev ? { ...prev, username: data.username, pfpUrl: data.pfpUrl || prev.pfpUrl } : prev);
@@ -237,7 +234,6 @@ export default function MiniApp() {
       
       <main className="relative max-w-md mx-auto p-6 flex flex-col min-h-screen pb-24">
         
-        {/* Header */}
         <header className="flex items-center justify-between mb-4 animate-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 bg-gradient-to-tr from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/20 border border-white/10">
@@ -269,7 +265,6 @@ export default function MiniApp() {
         <div className="flex-1 flex flex-col justify-center">
           
           {score === null ? (
-            // --- Welcome State ---
             <div className="flex flex-col items-center animate-in zoom-in duration-500">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold mb-3">Hello, @{user?.username || 'user'}</h2>
@@ -307,7 +302,6 @@ export default function MiniApp() {
               </div>
             </div>
           ) : (
-            // --- Result State (Optimized Layout) ---
             <div className="flex flex-col items-center w-full h-full">
               <div className="flex-shrink-0">
                 <ScoreGauge score={score} />

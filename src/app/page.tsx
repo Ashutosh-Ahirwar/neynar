@@ -1,64 +1,39 @@
-import { Metadata, ResolvingMetadata } from 'next';
+import { Metadata } from 'next';
 import MiniApp from '@/components/MiniApp';
 
-type Props = {
-  searchParams: { [key: string]: string | string[] | undefined }
-}
+const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
 
-export async function generateMetadata(
-  { searchParams }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const appUrl = "https://neynar-lyart.vercel.app";
-  
-  // 1. Check if we have share data in the URL
-  const score = searchParams.score ? searchParams.score.toString() : null;
-  const username = searchParams.user ? searchParams.user.toString() : null;
-
-  // 2. Determine which image to show
-  // If score exists -> Dynamic Image Generator
-  // If not -> Static Hero Image
-  const imageUrl = score && username
-    ? `${appUrl}/api/og?score=${score}&user=${username}` 
-    : `${appUrl}/hero.png`;
-
-  const title = score 
-    ? `Neynar Score: ${Number(score).toFixed(2)}` 
-    : 'Check Neynar Score';
-
-  // 3. Construct the Embed JSON
-  const embed = {
-    version: "1",
-    imageUrl: imageUrl, 
-    button: {
-      title: "Check My Score",
-      action: {
-        type: "launch_frame",
-        name: "Check Neynar Score",
-        url: appUrl, // Always launch the app at the root (home)
-        splashImageUrl: `${appUrl}/splash.png`,
-        splashBackgroundColor: "#000000"
-      }
+// Static Metadata for the main homepage
+const frame = {
+  version: "1",
+  imageUrl: `${appUrl}/hero.png`,
+  button: {
+    title: "Check My Score",
+    action: {
+      type: "launch_frame",
+      name: "Check Neynar Score",
+      url: appUrl,
+      splashImageUrl: `${appUrl}/splash.png`,
+      splashBackgroundColor: "#000000"
     }
-  };
+  }
+};
 
-  const stringifiedEmbed = JSON.stringify(embed);
+const stringifiedFrame = JSON.stringify(frame);
 
-  return {
-    title: title,
-    openGraph: {
-      title: title,
-      description: 'Check your Farcaster Reputation Score',
-      images: [imageUrl],
-    },
-    other: {
-      // The essential tags for Farcaster Mini Apps
-      // We define both for maximum compatibility
-      "fc:frame": stringifiedEmbed,
-      "fc:miniapp": stringifiedEmbed,
-    },
-  };
-}
+export const metadata: Metadata = {
+  title: "Check Neynar Score",
+  description: "Check your Farcaster Reputation Score",
+  openGraph: {
+    title: "Check Neynar Score",
+    description: "Check your Farcaster Reputation Score",
+    images: [`${appUrl}/hero.png`],
+  },
+  other: {
+    "fc:frame": stringifiedFrame,
+    "fc:miniapp": stringifiedFrame,
+  },
+};
 
 export default function Home() {
   return (
