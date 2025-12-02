@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { 
-  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info, ChevronRight
+  Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info, ChevronRight, ShieldCheck
 } from 'lucide-react';
 
 // --- Types ---
@@ -84,7 +84,7 @@ const ScoreGauge = ({ score }: { score: number }) => {
   };
 
   return (
-    <div className="relative flex items-center justify-center mb-10 mt-4 animate-in zoom-in duration-700">
+    <div className="relative flex items-center justify-center mb-6 mt-2 animate-in zoom-in duration-700">
       {/* Background Glow */}
       <div className={`absolute inset-0 bg-purple-500/10 blur-3xl rounded-full scale-150 opacity-50`} />
       
@@ -234,10 +234,10 @@ export default function MiniApp() {
     <div className="min-h-screen bg-[#000000] text-white font-sans selection:bg-purple-500/30">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
       
-      <main className="relative max-w-md mx-auto p-6 flex flex-col min-h-screen pb-24">
+      <main className="relative max-w-md mx-auto p-6 flex flex-col min-h-screen pb-20">
         
         {/* Header */}
-        <header className="flex items-center justify-between mb-8 animate-in slide-in-from-top-4 duration-500">
+        <header className="flex items-center justify-between mb-6 animate-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 bg-gradient-to-tr from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/20 border border-white/10">
               <Trophy size={20} className="text-white" />
@@ -267,13 +267,22 @@ export default function MiniApp() {
 
         <div className="flex-1 flex flex-col justify-center">
           
-          <div className="text-center mb-8 animate-in fade-in duration-700 delay-100">
-            <h2 className="text-2xl font-bold mb-2">Hello, {user?.displayName || 'User'}</h2>
-            <p className="text-gray-400 text-sm">Check your current Neynar reputation score.</p>
-          </div>
-
           {score === null ? (
-            <div className="flex flex-col items-center justify-center mb-12 animate-in zoom-in duration-500">
+            // --- Welcome State ---
+            <div className="flex flex-col items-center animate-in zoom-in duration-500">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold mb-3">Hello, {user?.displayName || 'User'}</h2>
+                <div className="bg-white/5 rounded-2xl p-5 border border-white/10 max-w-xs mx-auto backdrop-blur-sm">
+                   <div className="flex items-center gap-2 mb-2 text-purple-300">
+                      <ShieldCheck size={18} />
+                      <span className="text-sm font-semibold uppercase tracking-wider">What is Neynar Score?</span>
+                   </div>
+                   <p className="text-sm text-gray-400 leading-relaxed text-left">
+                     It's a reputation metric (0 to 1) that measures account quality to filter out spam and bots. It reflects your authentic contribution to the network.
+                   </p>
+                </div>
+              </div>
+
               <div className="w-24 h-24 bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 rounded-full flex items-center justify-center mb-8 border border-white/5 shadow-2xl shadow-purple-900/20">
                 <Search className="text-purple-300" size={36} />
               </div>
@@ -291,26 +300,27 @@ export default function MiniApp() {
               </Button>
             </div>
           ) : (
-            <ScoreGauge score={score} />
-          )}
+            // --- Result State (Compact) ---
+            <div className="flex flex-col items-center w-full">
+              <ScoreGauge score={score} />
 
-          {score !== null && (
-            <div className="space-y-4 mt-8 animate-in slide-in-from-bottom-8 duration-500 delay-100">
-              <Button onClick={handleShare} icon={Share} variant="primary">
-                Share Score
-              </Button>
-              
-              <Button 
-                onClick={() => setShowInfoModal(true)} 
-                variant="glass" 
-                className="justify-between group"
-              >
-                <div className="flex items-center gap-2">
-                  <Info size={18} className="text-gray-400 group-hover:text-white transition-colors" />
-                  <span>How to improve score?</span>
-                </div>
-                <ChevronRight size={16} className="text-gray-500 group-hover:text-white transition-colors" />
-              </Button>
+              <div className="w-full space-y-3 mt-4 animate-in slide-in-from-bottom-8 duration-500 delay-100">
+                <Button onClick={handleShare} icon={Share} variant="primary">
+                  Share Score
+                </Button>
+                
+                <Button 
+                  onClick={() => setShowInfoModal(true)} 
+                  variant="glass" 
+                  className="justify-between group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Info size={18} className="text-gray-400 group-hover:text-white transition-colors" />
+                    <span>How to improve score?</span>
+                  </div>
+                  <ChevronRight size={16} className="text-gray-500 group-hover:text-white transition-colors" />
+                </Button>
+              </div>
             </div>
           )}
         </div>
