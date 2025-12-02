@@ -1,7 +1,9 @@
 import { Metadata, ResolvingMetadata } from 'next';
 import MiniApp from '@/components/MiniApp';
 
-// In Next.js 15, params is a Promise
+// CRITICAL: Forces this page to be dynamic so it can read params correctly
+export const dynamic = 'force-dynamic';
+
 type Props = {
   params: Promise<{ score: string; username: string }>
 }
@@ -10,15 +12,10 @@ export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // Await the params to get the values
   const { score, username } = await params;
   
   const appUrl = process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app";
-  
-  // Decode the username in case it has special characters
   const decodedUsername = decodeURIComponent(username);
-
-  // Generate dynamic image URL using the OG API
   const imageUrl = `${appUrl}/api/og?score=${score}&user=${encodeURIComponent(decodedUsername)}`;
 
   const title = `Neynar Score: ${Number(score).toFixed(2)}`;
@@ -33,7 +30,7 @@ export async function generateMetadata(
         name: "Check Neynar Score",
         url: appUrl, 
         splashImageUrl: `${appUrl}/splash.png`,
-        splashBackgroundColor: "#000000"
+        splashBackgroundColor: "#ffffff"
       }
     }
   };

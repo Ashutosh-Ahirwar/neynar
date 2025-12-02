@@ -32,6 +32,7 @@ const frame = {
 const stringifiedFrame = JSON.stringify(frame);
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://neynar-lyart.vercel.app"),
   title: "Check Neynar Score",
   description: "Check your Farcaster Reputation Score",
   openGraph: {
