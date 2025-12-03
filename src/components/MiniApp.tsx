@@ -133,7 +133,6 @@ export default function MiniApp() {
   const [error, setError] = useState<string | null>(null);
   
   const [isAdded, setIsAdded] = useState(false);
-  // Controls the "Add App" popup visibility
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [donationStatus, setDonationStatus] = useState<'idle' | 'pending' | 'success'>('idle');
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -142,7 +141,7 @@ export default function MiniApp() {
     try {
       await sdk.actions.addMiniApp();
       setIsAdded(true);
-      setShowAddPopup(false); // Close popup on success
+      setShowAddPopup(false);
     } catch (e) {
       console.error("Failed to add miniapp:", e);
     }
@@ -170,20 +169,19 @@ export default function MiniApp() {
     }
   }, [score, user]);
 
-  const handleDonate = useCallback(async () => {
-    try {
-      setDonationStatus('pending');
-      await sdk.actions.sendToken({
-        token: "eip155:8453/native", 
-        amount: "500000000000000", 
-        recipientAddress: "0xa6DEe9FdE9E1203ad02228f00bF10235d9Ca3752"
-      });
-      setDonationStatus('success');
-      setTimeout(() => setDonationStatus('idle'), 3000);
-    } catch (e) {
-      console.error("Donation failed:", e);
-      setDonationStatus('idle');
-    }
+  const handleDonate = useCallback(() => {
+    // Optimistic Update: Say thank you immediately without waiting
+    setDonationStatus('success');
+
+    // Trigger Wallet in Background (Fire & Forget UI)
+    sdk.actions.sendToken({
+      token: "eip155:8453/native", 
+      amount: "500000000000000", // 0.0005 ETH on Base
+      recipientAddress: "0xa6DEe9FdE9E1203ad02228f00bF10235d9Ca3752"
+    }).catch(e => console.error("Donation failed or cancelled:", e));
+
+    // Reset button after 2 seconds to "normal"
+    setTimeout(() => setDonationStatus('idle'), 2000);
   }, []);
 
   const handleCheckScore = async () => {
@@ -227,11 +225,9 @@ export default function MiniApp() {
             pfpUrl: context.user.pfpUrl
           });
           
-          // Check if app is added
           if (context.client && context.client.added) {
             setIsAdded(true);
           } else {
-            // Show popup if NOT added
             setShowAddPopup(true);
           }
         }
@@ -360,7 +356,7 @@ export default function MiniApp() {
             ) : (
               <Heart size={14} className="text-pink-500" />
             )}
-            <span>{donationStatus === 'pending' ? '...' : donationStatus === 'success' ? 'Sent!' : 'Donate'}</span>
+            <span>{donationStatus === 'pending' ? '...' : donationStatus === 'success' ? 'Thank you' : 'Donate'}</span>
          </button>
       </div>
 
