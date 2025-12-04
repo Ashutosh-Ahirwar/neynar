@@ -37,17 +37,9 @@ export async function GET(request: Request) {
       }
     }
 
-    // 4. Color Logic
-    let color = '#fbbf24'; 
-    let glow = '#fbbf24';
-    const scoreNum = parseFloat(score);
-    if (scoreNum >= 0.9) {
-      color = '#34d399'; 
-      glow = '#34d399';
-    } else if (scoreNum >= 0.7) {
-      color = '#a855f7'; 
-      glow = '#a855f7';
-    }
+    // 4. Color Logic - Fixed to specific color request
+    const color = '#7c60fd'; 
+    const glow = '#7c60fd';
 
     return new ImageResponse(
       (
@@ -105,7 +97,7 @@ export async function GET(request: Request) {
               <div style={{ 
                 display: 'flex',
                 fontSize: 50, 
-                color: '#e5e7eb', 
+                color: '#ffffff', // Explicitly white
                 fontWeight: 700,
                 letterSpacing: '-1px'
               }}>
@@ -139,7 +131,7 @@ export async function GET(request: Request) {
                   display: 'flex',
                   fontSize: 110, 
                   fontWeight: 700,
-                  color: '#ffffff',
+                  color: '#ffffff', // Explicitly white
                   lineHeight: 1,
                   textShadow: '0 4px 10px rgba(0,0,0,0.5)',
                 }}>
@@ -164,12 +156,13 @@ export async function GET(request: Request) {
               marginTop: 'auto', 
               marginBottom: 40,
               fontSize: 24,
-              color: '#6b7280',
+              color: '#ffffff', // Changed to white as requested
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
               textTransform: 'uppercase',
-              letterSpacing: '2px'
+              letterSpacing: '2px',
+              opacity: 0.8
             }}>
               CHECK YOURS ON MINIAPP
             </div>

@@ -5,6 +5,9 @@ import { sdk } from '@farcaster/miniapp-sdk';
 import { 
   Trophy, Share, Heart, Bookmark, Loader2, CheckCircle2, Search, X, Info, ChevronRight, ShieldCheck, UserCheck, MessageCircle, Sparkles, AlertCircle
 } from 'lucide-react';
+// Import viem for standard wallet support
+import { createWalletClient, custom, parseEther } from 'viem';
+import { base } from 'viem/chains';
 
 interface UserContext {
   fid: number;
@@ -88,7 +91,7 @@ const ScoreGauge = ({ score }: { score: number }) => {
       {/* Background Glow - Static */}
       <div className={`absolute inset-0 ${isHighQuality ? 'bg-emerald-500/20' : 'bg-purple-500/10'} blur-3xl rounded-full scale-150 opacity-50`} />
       
-      {/* Decorative Dots - Static (Removed animate-spin-slow) */}
+      {/* Decorative Dots - Static */}
       {isHighQuality && (
         <div className="absolute inset-0">
            {[...Array(6)].map((_, i) => (
@@ -100,7 +103,7 @@ const ScoreGauge = ({ score }: { score: number }) => {
       <svg className="transform -rotate-90 w-56 h-56 relative z-10">
         <circle className="text-white/5" strokeWidth="16" stroke="currentColor" fill="transparent" r={radius} cx="112" cy="112" />
         <circle 
-          className={getColor(score)} // Removed transition classes
+          className={getColor(score)} 
           strokeWidth="16" 
           strokeDasharray={circumference} 
           strokeDashoffset={offset} 
@@ -169,19 +172,75 @@ export default function MiniApp() {
     }
   }, [score, user]);
 
-  const handleDonate = useCallback(() => {
-    // Optimistic Update: Say thank you immediately without waiting
-    setDonationStatus('success');
+  const handleDonate = useCallback(async () => {
+    setDonationStatus('pending');
+    
+    const RECIPIENT = "0xa6DEe9FdE9E1203ad02228f00bF10235d9Ca3752";
+    const AMOUNT_ETH = "0.0005";
+    
+    let success = false;
 
-    // Trigger Wallet in Background (Fire & Forget UI)
-    sdk.actions.sendToken({
-      token: "eip155:8453/native", 
-      amount: "500000000000000", // 0.0005 ETH on Base
-      recipientAddress: "0xa6DEe9FdE9E1203ad02228f00bF10235d9Ca3752"
-    }).catch(e => console.error("Donation failed or cancelled:", e));
+    // 1. Try Injected Wallet (Base App / MetaMask)
+    // This is required for Base App where sdk.actions.sendToken might not work reliably yet
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      try {
+        const walletClient = createWalletClient({
+          chain: base,
+          transport: custom((window as any).ethereum)
+        });
+        
+        const [address] = await walletClient.requestAddresses();
+        
+        await walletClient.sendTransaction({
+          account: address,
+          to: RECIPIENT as `0x${string}`,
+          value: parseEther(AMOUNT_ETH),
+          chain: base
+        });
+        
+        success = true;
+      } catch (e: any) {
+        console.error("Wallet transaction failed:", e);
+        // If user actively rejected, we stop here and reset
+        if (e.code === 4001 || e.message?.toLowerCase().includes("reject")) {
+           setDonationStatus('idle');
+           return; 
+        }
+      }
+    }
 
-    // Reset button after 2 seconds to "normal"
-    setTimeout(() => setDonationStatus('idle'), 2000);
+    // 2. Try Farcaster SDK (Fallback for Warpcast if injected wallet failed or missing)
+    if (!success) {
+      try {
+        await sdk.actions.sendToken({
+          token: "eip155:8453/native", 
+          amount: "500000000000000", // 0.0005 ETH in Wei
+          recipientAddress: RECIPIENT
+        });
+        success = true;
+      } catch (e) {
+        console.warn("SDK donation failed:", e);
+      }
+    }
+
+    // 3. Final Fallback: Copy Address
+    if (!success) {
+      try {
+        await navigator.clipboard.writeText(RECIPIENT);
+        alert("Donation address copied to clipboard!"); 
+        success = true; // Mark as success to show "Thank you" UI
+      } catch (e) {
+        console.error("Clipboard copy failed", e);
+      }
+    }
+
+    if (success) {
+      setDonationStatus('success');
+      // Reset button after 2 seconds
+      setTimeout(() => setDonationStatus('idle'), 2000);
+    } else {
+      setDonationStatus('idle');
+    }
   }, []);
 
   const handleCheckScore = async () => {
